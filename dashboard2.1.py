@@ -250,7 +250,7 @@ with col1:
 
 # --- COLUMN 2: MAP ---
 with col2:
-    st.subheader(f"Geographic Map: {selected_indicator}")
+    st.subheader(f"{selected_indicator}")
 
     # FIX 3: Use the pillar_df for mapping as it contains the correct, clean column names.
     # The map creation needs a DF that contains the selected_indicator column.
@@ -320,3 +320,4 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
