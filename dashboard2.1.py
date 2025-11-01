@@ -162,7 +162,7 @@ try:
     #  The county_lvl_data.csv MUST have its column names 
     # (p1_..., p2_..., etc.) match or contain the keywords in PILLAR_KEYWORDS.
     df_county_raw, pillar_dfs = load_and_clean_data(
-        r"C:\Users\PC\Desktop\Frank\Projects - Frank\county_lvl_data.csv"
+        "county_lvl_data.csv"
     )
 
     with open(GEOJSON_PATH, 'r') as f:
@@ -318,4 +318,5 @@ st.markdown("""---""")
 
 st.header("County Data Table")
 # Use the filtered pillar_df for the table
+
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
