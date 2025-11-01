@@ -299,7 +299,7 @@ with col2:
         hover_name='County',          # Text to show on hover
         color_continuous_scale="RdYlGn", 
         mapbox_style="carto-positron", 
-        zoom=2.5,                     
+        zoom=0.5,                     
         center={"lat": 0.02, "lon": 37.9}, 
         opacity=0.8,
         title=f'County Performance Distribution',
@@ -336,6 +336,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
