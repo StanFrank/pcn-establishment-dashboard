@@ -281,23 +281,6 @@ with col2:
     st.plotly_chart(fig_map, use_container_width=True)
 
 
-if geojson_data is None:
-    st.error("Map visualization cannot load: GeoJSON data is missing.")
-else:
-   
-    with col2:
-        st.subheader(f"{selected_indicator}")
-
-        # Create the Choropleth map using Plotly Mapbox
-        fig_map = px.choropleth_mapbox(
-            pillar_df, 
-            geojson=geojson_data, # This line now safely references the initialized variable
-            locations='County',           
-            featureidkey=GEOJSON_COUNTY_KEY,
-            # ... (rest of map code) ...
-        )
-
-        st.plotly_chart(fig_map, use_container_width=True)
 
 if geojson_data is None or GEOJSON_COUNTY_KEY is None:
     st.error("Map visualization cannot load: GeoJSON data or its key is missing.")
@@ -320,5 +303,6 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
