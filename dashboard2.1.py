@@ -104,20 +104,20 @@ def load_and_clean_data(file_path):
     for col in score_cols:
         # Convert to numeric, forcing errors to NaN (important for data type)
         df[col] = pd.to_numeric(df[col], errors='coerce')
-name_standardization_map = {
-        'West pokot': 'West Pokot',
-        'Nairobi City County': 'Nairobi',
-        'Garissa County': 'Garissa',
-        # Add any other county names that are not matching exactly
-    }
-    
+    name_standardization_map = {
+            'West pokot': 'West Pokot',
+            'Nairobi City County': 'Nairobi',
+            'Garissa County': 'Garissa',
+            # Add any other county names that are not matching exactly
+        }
+        
     df['County'] = df['County'].str.strip() # Good practice: remove leading/trailing spaces
     df['County'] = df['County'].replace(name_standardization_map, regex=False)
-    
-    # This final clean-up is often necessary if the names are slightly different
+        
+        # This final clean-up is often necessary if the names are slightly different
     df['County'] = df['County'].str.replace('County', '').str.strip()
-
-    # Fill NaNs with 0 AFTER conversion (so 'N/A' becomes 0)
+    
+        # Fill NaNs with 0 AFTER conversion (so 'N/A' becomes 0)
     df = df.fillna(0)
 
     # 4. RENAMING (CRITICAL FIX): You need a central DataFrame with all FINAL column names 
@@ -318,6 +318,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
