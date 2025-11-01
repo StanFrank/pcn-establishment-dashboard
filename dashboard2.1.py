@@ -226,8 +226,7 @@ selected_indicator = st.sidebar.selectbox(
 # --- 5. DUAL VISUALIZATION LAYOUT (Map and Bar Chart) ---
 
 # Use columns for side-by-side visualization
-col1, col2 = st.columns([1, 1])
-
+col1, col2 = st.columns([0.8, 1.2])
 # --- COLUMN 1: BAR CHART ---
 with col1:
     st.subheader(f"Bar Chart")
@@ -307,6 +306,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
