@@ -283,51 +283,61 @@ with col1:
 
 # --- COLUMN 2: MAP ---
 with col2:
-    st.subheader(f"Geographic Map")
+st.subheader(f"Geographic Map")
 
-    # FIX 3: Use the pillar_df for mapping as it contains the correct, clean column names.
-    # The map creation needs a DF that contains the selected_indicator column.
-    # Since pillar_df is guaranteed to contain 'County' and 'selected_indicator', we use it.
-    
-    # Create the Choropleth map using Plotly Mapbox
+# Define the center for Kenya
+KENYA_CENTER = {"lat": 0.0, "lon": 38.0}
+
+# Check if GeoJSON data is available before plotting
+if geojson_data is None or GEOJSON_COUNTY_KEY is None:
+    st.error("Map visualization cannot load: GeoJSON data or its key is missing.")
+    # Stop execution for this column
+    fig_map = None
+else:
+    # Create the Choropleth map using Plotly Mapbox with minimalist styling
     fig_map = px.choropleth_mapbox(
         pillar_df, # Use the correctly filtered DF
         geojson=geojson_data,
-        locations='County',           # Column in the DataFrame with the county name
-        featureidkey="properties.County_Name_Key", # Key in the GeoJSON that matches the county name
-        color=selected_indicator,     # Column to determine the color intensity
-        hover_name='County',          # Text to show on hover
-        color_continuous_scale="RdYlGn", 
-        mapbox_style=""carto-darkmatter", 
-        zoom=5.5,                     
-        center={"lat": 0.0, "lon": 38.0}, 
-        opacity=1,
-        title=f'County Performance Distribution',
-        labels={selected_indicator: 'Score (%)'},
-        color_continuous_scale="Viridis",
-        labels={'County': 'County', selected_score: 'Pillar Score'}
+        locations='County',            # Column in the DataFrame with the county name
+        featureidkey=GEOJSON_COUNTY_KEY, # Key in the GeoJSON that matches the county name
+        color=selected_indicator,      # Column to determine the color intensity (the metric)
+        hover_name='County',           # County name on hover
+        color_continuous_scale="Viridis", # Clean sequential color scale
+        
+        # --- Minimalist Styling Parameters ---
+        mapbox_style="white-bg",        # KEY STYLING: Provides the clean, white background
+        zoom=5.5,                       # Zoom optimized for Kenya
+        center=KENYA_CENTER,            # Center the map view
+        opacity=1,                      # Ensure the county fill is fully opaque
+        
+        # --- Labels for Hover/Legend ---
+        labels={'County': 'County', selected_indicator: 'Score (%)'},
+        title=f'County Performance Distribution: {selected_indicator}' # Set main map title
     )
 
+    # 2. Refine the layout: remove margins and clean up color bar
     fig_map.update_layout(
-        margin={"r":0,"t":40,"l":0,"b":0},
-        # --- Customize Color Bar Title ---
+        # Remove margins (top, right, bottom, left) to maximize map space
+        margin={"r": 0, "t": 0, "l": 0, "b": 0},
+        
+        # Customize Color Bar (Legend)
         coloraxis_colorbar=dict(
-            title=selected_score, # Use the selected score name as the title
+            title="Score (%)", # Simple title for the color bar
             thicknessmode="pixels", 
-            thickness=15, # Adjust thickness
-            len=0.7, # Adjust length (0 to 1)
-            # Position the color bar if needed (default is right)
-        )
-    mapbox=dict(
-            # This prevents the grey Mapbox base layer from showing if you zoom too far out
-            # It essentially just keeps the white background dominant.
+            thickness=15, 
+            len=0.7, # Takes up 70% of the map height
+        ),
+        
+        # Mapbox specific layout tweaks
+        mapbox=dict(
+            # These ensure no unnecessary movement or projection issues
             bearing=0, 
             pitch=0,
         ),
         
-        # --- Set Title/Font ---
-        title_text=f"County Scores: {selected_score}",
-        title_x=0.5, # Center the title
+        # Center the main title (set in px.choropleth_mapbox)
+        title_x=0.5, 
+    )
         
     st.plotly_chart(fig_map, use_container_width=True)
 
@@ -354,6 +364,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
