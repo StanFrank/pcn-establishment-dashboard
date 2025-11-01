@@ -212,7 +212,14 @@ st.markdown(
     unsafe_allow_html=True
 )
 st.title("County-Level PCN Establishment Analysis")
-
+st.markdown(
+    """
+    <h1 style='text-align: center; color: #1E90FF;'>
+        County-Level PCN Establishment Analysis
+    </h1>
+    """,
+    unsafe_allow_html=True
+)
 st.markdown("""---""")
 
 # Sidebar for Filter Selection
@@ -329,6 +336,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
