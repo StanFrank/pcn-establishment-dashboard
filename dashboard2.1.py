@@ -157,7 +157,7 @@ def load_and_clean_data(file_path):
 # --- 3. EXECUTION BLOCK (LOAD DATA & SETUP) ---
 geojson_data= None
 GEOJSON_PATH = "kenya_counties_adm1.geojson"
-GEOJSON_COUNTY_KEY = "properties.NAME_1"
+GEOJSON_COUNTY_KEY = "properties.ADM1_EN"
 try:
     #  The county_lvl_data.csv MUST have its column names 
     # (p1_..., p2_..., etc.) match or contain the keywords in PILLAR_KEYWORDS.
@@ -169,7 +169,7 @@ try:
         geojson_data = json.load(f)
     
     # You MUST verify this key:
-    GEOJSON_COUNTY_KEY = "properties.NAME_1"
+    GEOJSON_COUNTY_KEY = "properties.ADM1_EN"
 
 except FileNotFoundError as e:
     st.error("Error: GeoJSON or County data file not found. Check your file paths.")
@@ -306,6 +306,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
