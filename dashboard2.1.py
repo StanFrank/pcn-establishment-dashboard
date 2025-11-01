@@ -230,7 +230,7 @@ col1, col2 = st.columns([1, 1])
 
 # --- COLUMN 1: BAR CHART ---
 with col1:
-    st.subheader(f"Bar Chart: {selected_indicator}")
+    st.subheader(f"Bar Chart")
 
     # Prepare data for the bar chart (use the correct pillar_df)
     df_chart = pillar_df[['County', selected_indicator]].sort_values(by=selected_indicator, ascending=False)
@@ -254,7 +254,7 @@ with col1:
 
 # --- COLUMN 2: MAP ---
 with col2:
-    st.subheader(f"{selected_indicator}")
+    st.subheader(f"Geographic Map")
 
     # FIX 3: Use the pillar_df for mapping as it contains the correct, clean column names.
     # The map creation needs a DF that contains the selected_indicator column.
@@ -273,7 +273,7 @@ with col2:
         zoom=5.5,                     
         center={"lat": 0.02, "lon": 37.9}, 
         opacity=0.8,
-        title=f'County Distribution by {selected_indicator}',
+        title=f'County Performance Distribution',
         labels={selected_indicator: 'Score (%)'}
     )
 
@@ -307,6 +307,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
