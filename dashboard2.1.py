@@ -1,4 +1,5 @@
 import pandas as pd
+import geopandas as gpd
 import streamlit as st
 import numpy as np
 import json
@@ -82,6 +83,7 @@ def group_columns_by_pillar(df_raw, pillar_keywords):
             pillar_dfs[pillar] = df_raw[matching_cols].copy()
 
     return pillar_dfs
+SHAPEFILE_PATH = "ken_admbnda_adm1_iebc_20191031.shp"
 
 @st.cache_data
 def load_and_clean_data(file_path):
@@ -119,35 +121,7 @@ def load_and_clean_data(file_path):
     
         # Fill NaNs with 0 AFTER conversion (so 'N/A' becomes 0)
     df = df.fillna(0)
-
-    # 4. RENAMING (CRITICAL FIX): You need a central DataFrame with all FINAL column names 
-    # for the map visualization to work, as the map is built on a single DF.
-    
-    # This requires manual matching of raw pX_ names to clean names. 
-    # Since I don't have the raw names, I will use a dummy map and advise you to fill it.
-    
-    # --- IMPORTANT: FILL THIS MAP with the ACTUAL raw column names from your CSV ---
-    # Example: 'p1_PHC Advisory Committees' : 'PHC Advisory Committees'
-    RAW_TO_CLEAN_MAP = {
-        # Fill this section with the actual column names from your CSV (first 6 rows) 
-        # and map them to the clean names in PILLAR_KEYWORDS
-        # e.g., 'p1_PHC Advisory Committees_raw': 'PHC Advisory Committees',
-        # e.g., 'p1_Governance Weighted Score_raw': 'Governance Weighted Score',
-        # ... ensure all columns used in PILLAR_KEYWORDS are mapped.
-    }
-    
-    # DUMMY implementation (YOU MUST REPLACE/VALIDATE THIS):
-    # This is the point where the raw column names MUST be renamed to the clean column names
-    # to create one 'df_county' containing all the clean-named columns.
-    
-    # For now, we will assume a successful rename has happened and 
-    # the df returned has all the clean columns:
-    # df_county_clean = df.rename(columns=RAW_TO_CLEAN_MAP) 
-    
-    # Since I cannot perform the rename, I will make the function return the raw DF and 
-    # rely on the pillar grouping logic below to handle the clean column names
-    # (assuming the pillar grouping can find the column names based on keywords).
-    
+  
     # Better approach: return the cleaned DF and the pillar DFs.
     df_county_clean = df.copy() # The DF with raw column names, but cleaned data types
     pillar_dfs = group_columns_by_pillar(df_county_clean, PILLAR_KEYWORDS)
@@ -164,34 +138,71 @@ def load_and_clean_data(file_path):
     # contains the column names that are close enough to the keywords to be selected.
     # We will simplify the return structure:
     return df_county_clean, pillar_dfs # df_county_clean still has the raw/stripped names
+# --- Data Loading and Conversion Function ---
+@st.cache_data
+def load_geodata(shp_path):
+   
+    try:
+        # Load the Shapefile into a GeoDataFrame
+        gdf = gpd.read_file(shp_path)
+        
+        # Ensure the GeoDataFrame is in the required WGS84 (EPSG:4326) CRS
+        # The PRJ file suggests it is, but this step is good practice.
+        if gdf.crs != "EPSG:4326":
+            gdf = gdf.to_crs(epsg=4326)
+            
+        # Select only the geometry and the required attribute (ADM1_EN)
+        # This keeps the GeoJSON payload small and clean
+        gdf_clean = gdf[['ADM1_EN', 'geometry']].rename(columns={'ADM1_EN': 'County_Name_Key'})
+        
+        # Convert the GeoDataFrame to a Python GeoJSON dictionary object
+        geojson_data = json.loads(gdf_clean.to_json())
+        
+        return geojson_data
+    
+    except Exception as e:
+        st.error(f"Error loading geospatial data: {e}")
+        return None
 
-
+# =======================================================
 # --- 3. EXECUTION BLOCK (LOAD DATA & SETUP) ---
-geojson_data= None
-GEOJSON_PATH = "kenya_counties_adm1.geojson"
-GEOJSON_COUNTY_KEY = "properties.ADM1_EN"
+# =======================================================
+
+# Path to the main Shapefile (.shp) that geopandas will read
+SHAPEFILE_PATH = "ken_admbnda_adm1_iebc_20191031.shp" 
+geojson_data = None
+
+# We must now use the key that corresponds to the renamed column in the GeoDataFrame
+GEOJSON_COUNTY_KEY = "properties.County_Name_Key" 
+
 try:
-    #  The county_lvl_data.csv MUST have its column names 
-    # (p1_..., p2_..., etc.) match or contain the keywords in PILLAR_KEYWORDS.
+    # 1. Load and Clean CSV Data (KEEP THIS)
+    # The county_lvl_data.csv MUST have its column names (p1_..., p2_..., etc.) 
+    # match or contain the keywords in PILLAR_KEYWORDS.
     df_county_raw, pillar_dfs = load_and_clean_data(
         "county_lvl_data.csv"
     )
 
-    with open(GEOJSON_PATH, 'r') as f:
-        geojson_data = json.load(f)
+    # 2. Load and Convert Shapefile to GeoJSON Object (REPLACE FILE I/O WITH THIS)
+    # You MUST have the .shp, .shx, .dbf, and .prj files in the same directory.
+    # This function uses geopandas (gpd.read_file) to load the shapefile 
+    # and then converts it to a GeoJSON dictionary in memory.
+    geojson_data = load_geodata(SHAPEFILE_PATH)
     
-    # You MUST verify this key:
-    GEOJSON_COUNTY_KEY = "properties.ADM1_EN"
-
+    # Check if the GeoJSON object was successfully created
+    if geojson_data is None:
+        st.error("Error: Geospatial data could not be loaded or converted from Shapefile.")
+        st.stop()
+    
 except FileNotFoundError as e:
-    st.error("Error: GeoJSON or County data file not found. Check your file paths.")
+    # This will now catch missing CSV or missing Shapefile components
+    st.error(f"Error: A required file was not found: {e}. Check your file paths and ensure all Shapefile components are present.")
     st.stop()
 
 except Exception as e:
-    # Catch any other data processing error
-    st.error(f"An error occurred during data processing: {e}")
+    # Catch any other data processing error (including geopandas/CRS issues)
+    st.error(f"An unexpected error occurred during data processing: {e}")
     st.stop()
-
 
 # --- 4. STREAMLIT LAYOUT AND INTERACTIVITY ---
 
@@ -276,11 +287,11 @@ with col2:
         pillar_df, # Use the correctly filtered DF
         geojson=geojson_data,
         locations='County',           # Column in the DataFrame with the county name
-        featureidkey=GEOJSON_COUNTY_KEY, # Key in the GeoJSON that matches the county name
+        featureidkey="properties.County_Name_Key", # Key in the GeoJSON that matches the county name
         color=selected_indicator,     # Column to determine the color intensity
         hover_name='County',          # Text to show on hover
         color_continuous_scale="RdYlGn", 
-        mapbox_style="carto-positron", 
+        mapbox_style="white-bg", 
         zoom=5.5,                     
         center={"lat": 0.02, "lon": 37.9}, 
         opacity=0.8,
@@ -318,6 +329,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
