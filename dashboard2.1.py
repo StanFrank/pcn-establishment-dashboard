@@ -211,10 +211,10 @@ st.markdown(
     "<h1 style='text-align: center;'>Kenya PCN Establishment Dashboard</h1>",
     unsafe_allow_html=True
 )
-st.title("County-Level PCN Establishment Analysis")
+#st.title("County-Level PCN Establishment Analysis")
 st.markdown(
     """
-    <h1 style='text-align: center; color: #1E90FF;'>
+    <h1 style='text-align: left; color: #1E90FF;'>
         County-Level PCN Establishment Analysis
     </h1>
     """,
@@ -336,6 +336,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
