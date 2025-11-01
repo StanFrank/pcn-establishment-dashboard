@@ -298,7 +298,7 @@ with col2:
         color=selected_indicator,     # Column to determine the color intensity
         hover_name='County',          # Text to show on hover
         color_continuous_scale="RdYlGn", 
-        mapbox_style="white-bg", 
+        mapbox_style=""carto-darkmatter", 
         zoom=5.5,                     
         center={"lat": 0.0, "lon": 38.0}, 
         opacity=1,
@@ -354,6 +354,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
