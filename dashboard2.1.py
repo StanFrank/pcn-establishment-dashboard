@@ -286,7 +286,7 @@ if geojson_data is None:
 else:
    
     with col2:
-        st.subheader(f"Geographic Map: {selected_indicator}")
+        st.subheader(f"{selected_indicator}")
 
         # Create the Choropleth map using Plotly Mapbox
         fig_map = px.choropleth_mapbox(
@@ -320,4 +320,5 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
