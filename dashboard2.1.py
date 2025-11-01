@@ -299,18 +299,36 @@ with col2:
         hover_name='County',          # Text to show on hover
         color_continuous_scale="RdYlGn", 
         mapbox_style="carto-positron", 
-        zoom=0.5,                     
-        center={"lat": 0.02, "lon": 37.9}, 
-        opacity=0.8,
+        zoom=5.5,                     
+        center={"lat": 0.0, "lon": 38.0}, 
+        opacity=1,
         title=f'County Performance Distribution',
-        labels={selected_indicator: 'Score (%)'}
+        labels={selected_indicator: 'Score (%)'},
+        color_continuous_scale="Viridis",
+        labels={'County': 'County', selected_score: 'Pillar Score'}
     )
 
     fig_map.update_layout(
         margin={"r":0,"t":40,"l":0,"b":0},
-        height=550
-    )
-
+        # --- Customize Color Bar Title ---
+        coloraxis_colorbar=dict(
+            title=selected_score, # Use the selected score name as the title
+            thicknessmode="pixels", 
+            thickness=15, # Adjust thickness
+            len=0.7, # Adjust length (0 to 1)
+            # Position the color bar if needed (default is right)
+        )
+    mapbox=dict(
+            # This prevents the grey Mapbox base layer from showing if you zoom too far out
+            # It essentially just keeps the white background dominant.
+            bearing=0, 
+            pitch=0,
+        ),
+        
+        # --- Set Title/Font ---
+        title_text=f"County Scores: {selected_score}",
+        title_x=0.5, # Center the title
+        
     st.plotly_chart(fig_map, use_container_width=True)
 
 
@@ -336,6 +354,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
