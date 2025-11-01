@@ -184,7 +184,11 @@ except Exception as e:
 # --- 4. STREAMLIT LAYOUT AND INTERACTIVITY ---
 
 st.set_page_config(layout="wide", page_title="Kenya PCN Establishment Dashboard")
-st.title("🇰🇪 County-Level PCN Establishment Analysis")
+st.markdown(
+    "<h1 style='text-align: center;'>Kenya PCN Establishment Dashboard</h1>",
+    unsafe_allow_html=True
+)
+st.title("County-Level PCN Establishment Analysis")
 
 st.markdown("""---""")
 
@@ -303,6 +307,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
