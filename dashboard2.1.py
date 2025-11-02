@@ -323,33 +323,28 @@ with col2:
 
         # --- 3. REFINEMENT & STYLING ---
         fig_map.update_traces(
-            marker=dict(line=dict(color="black", width=0.3)),
-            hovertemplate="%{location}<br>%{z}<extra></extra>",
-            zmin=df_map_data[selected_indicator].min(),
-            zmax=df_map_data[selected_indicator].max(),
-            zauto= False,
+            marker_line_width=0.5,
+            marker_line_color="white",
+            hovertemplate="<b>%{location}</b><br>Score: %{z:.1f}%<extra></extra>",
+            marker=dict(opacity=0.85),
         )
 
         fig_map.update_layout(
-            geo=dict(
-                fitbounds="locations",
-                visible=False,
+            margin={"r":0, "t":30, "l":0, "b": 0},
+            coloraxis_colorbar=dict(
+                title=selected_indicator,
+                tickformat=".0f",
+                title_side="right",
             ),
-            coloraxis_colorbar=dict(title=selected_indicator),
-            paper_bgcolor="white",
-            plot_bgcolor="white",
-            coloraxis=dict(colorbar_tickformat=".0f", cmin=None, cmax=None, colorscale="Viridis", showscale=True),
         )
-
         # --- 4. Manually make missing data appear white ---
-        fig_map.update_traces(marker=dict(line=dict(color="black", width=0.3), colorbar_tickformat=".0f"),
-                          selector=dict(type='choropleth'))
-        fig_map.update_layout(coloraxis_colorbar_title=selected_indicator, geo_bgcolor="white")
-        fig_map.update_coloraxes(colorbar_title=selected_indicator, showscale=True, missingcolor="white")
+        for trace in fig_map.data:
+            if hasattr(trace, "marker"):
+                trace.marker.missing = {"color": "white"}
+        
+        
         
         st.plotly_chart(fig_map, use_container_width=True)
-
-
 
 st.markdown("""---""")
 
