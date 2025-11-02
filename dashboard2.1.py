@@ -97,7 +97,7 @@ def load_and_clean_data(file_path):
     df_raw.columns = df_raw.columns.str.replace(' +', ' ', regex=True)
     
     # 2. FILTER: Keep only the 6 county rows (excluding national averages)
-    df = df_raw.head(6).copy() 
+    df = df_raw.head(47).copy() 
 
     # 3. CONVERSION & FILLING: Replace non-numeric with NaN and convert to numeric
     df = df.replace(['N/A', 'N\\A', '#DIV/0!', '', ' '], np.nan)
@@ -121,10 +121,10 @@ def load_and_clean_data(file_path):
     df['County'] = df['County'].str.replace('County', '').str.strip()
     
         # Fill NaNs with 0 AFTER conversion (so 'N/A' becomes 0)
-    df = df.fillna(0)
+    df_filtered = df.dropna(subset=score_cols, how='all').copy()
   
     # Better approach: return the cleaned DF and the pillar DFs.
-    df_county_clean = df.copy() # The DF with raw column names, but cleaned data types
+    df_county_clean = df_filtered.fillna(0).copy() # The DF with raw column names, but cleaned data types
     pillar_dfs = group_columns_by_pillar(df_county_clean, PILLAR_KEYWORDS)
 
     # We need a single DF with all clean names for the map (df_county). 
@@ -370,6 +370,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
