@@ -338,7 +338,11 @@ with col2:
         fig_map.update_layout(
             margin={"r":0, "t":0, "l":0, "b":0},
             coloraxis_colorbar=dict(
+                title= "Score (%)",
+                title_side="top",
                 tickformat=".0f",
+                tickfont=dict(color="black", size=11), #
+                titlefont=dict(color="black", size=12, family="Arial Black"),                
                 x=0.97,              # move slightly inside the right border
                 xanchor="right",
                 y=0.5,
@@ -347,8 +351,7 @@ with col2:
                 thickness=12,
                 bgcolor="rgba(255,255,255,0.6)",  # soft white background for readability
                 outlinecolor="rgba(0,0,0,0.2)",
-                outlinewidth=1,
-                title=None,          # 👈 remove title to match Streamlit’s default look
+                outlinewidth=1,                     
             ),
         )
 
@@ -384,6 +387,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
