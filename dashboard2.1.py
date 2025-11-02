@@ -3,25 +3,8 @@ import streamlit as st
 import numpy as np
 import plotly.express as px
 import io
-
-def standardize_name(name):
-    if pd.isna(name):
-        return name
-    name = str(name).strip().title()
-    
-    name_standardization_map = {
-        'West Pokot': 'West Pokot',
-        'Nairobi City County': 'Nairobi',
-        'Garissa County': 'Garissa',
-    }
-    name = name_standardization_map.get(name, name)
-    
-    name = (
-        name.replace('County', '').strip()
-        .replace('/', ' ').replace('-', ' ').replace('  ', ' ').strip()
-    )
-    return name
-# import geopandas as gpd # NOTE: geopandas is not needed for Plotly choropleth with GeoJSON
+import geopandas as gpd
+import json
 
 # --- 1. CONFIGURATION AND DATA STRUCTURES ---
 
@@ -83,6 +66,32 @@ PILLAR_KEYWORDS = {
 }
 
 # --- 2. DATA LOADING AND CLEANING FUNCTIONS ---
+def standardize_name(name):
+    """Applies the universal cleaning rules, robustly handling all types of spaces."""
+    if pd.isna(name):
+        return name
+    name = str(name).strip().title()
+    
+    # Apply specific mappings (Keep this section clean)
+    name_standardization_map = {
+        'Nairobi City County': 'Nairobi',
+        'Garissa County': 'Garissa',
+    }
+    name = name_standardization_map.get(name, name)
+    
+    # --- CRITICAL CLEANUP: Normalize Spaces and Separators ---
+    name = (
+        name.replace('County', '').strip()
+        .replace('\xa0', ' ') # Explicitly replace non-breaking space
+        .replace('/', ' ').replace('-', ' ')
+    )
+    
+    # Replace multiple spaces with a single space, then strip again
+    while '  ' in name:
+        name = name.replace('  ', ' ')
+        
+    return name.strip()
+
 
 # Group column headers into pillar dataframes.
 def group_columns_by_pillar(df_raw, pillar_keywords):
@@ -345,6 +354,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
