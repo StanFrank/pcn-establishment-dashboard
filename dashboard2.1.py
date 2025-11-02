@@ -97,7 +97,7 @@ def load_and_clean_data(file_path):
     df_raw.columns = df_raw.columns.str.replace(' +', ' ', regex=True)
     
     # 2. FILTER: Keep only the 6 county rows (excluding national averages)
-    df = df_raw.head(47).copy() 
+    df = df_raw.head(6).copy() 
 
     # 3. CONVERSION & FILLING: Replace non-numeric with NaN and convert to numeric
     df = df.replace(['N/A', 'N\\A', '#DIV/0!', '', ' '], np.nan)
@@ -370,6 +370,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
