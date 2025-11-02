@@ -311,7 +311,7 @@ with col2:
             featureidkey=GEOJSON_COUNTY_KEY,
             color=selected_indicator,
             hover_name='County',
-            color_continuous_scale="RdYlGn_r",
+            color_continuous_scale="RdYlGn",
             mapbox_style="white-bg",
             zoom=5.8,
             center=KENYA_CENTER,
@@ -353,6 +353,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
