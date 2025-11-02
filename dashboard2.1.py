@@ -304,7 +304,9 @@ with col2:
 
         # --- 2. CREATE MAP ---
         # Fill NaN with 0 temporarily (so they render as the lowest value)
-        df_map_data[selected_indicator] = df_map_data[selected_indicator].fillna(0)
+        df_map_data[selected_indicator] = pd.to_numeric(df_map_data[selected_indicator], errors="coerce")
+        df_map_data[selected_indicator] = df_map_data[selected_indicator].replace({0: np.nan})
+
 
         fig_map = px.choropleth_mapbox(
             df_map_data,
@@ -319,6 +321,7 @@ with col2:
             center=KENYA_CENTER,
             opacity=0.8,
             labels={'County': 'County', selected_indicator: 'Score (%)'},
+            missingcolor="white"
         )
 
         # --- 3. REFINEMENT & STYLING ---
@@ -338,12 +341,8 @@ with col2:
             ),
         )
         # --- 4. Manually make missing data appear white ---
-        for trace in fig_map.data:
-            if hasattr(trace, "marker"):
-                trace.marker.missing = {"color": "white"}
-        
-        
-        
+        # --- Handle missing data properly before plotting ---
+      
         st.plotly_chart(fig_map, use_container_width=True)
 
 st.markdown("""---""")
@@ -352,6 +351,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
