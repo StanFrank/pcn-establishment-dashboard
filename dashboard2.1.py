@@ -83,6 +83,7 @@ def group_columns_by_pillar(df_raw, pillar_keywords):
             pillar_dfs[pillar] = df_raw[matching_cols].copy()
 
     return pillar_dfs
+
 SHAPEFILE_PATH = "ken_admbnda_adm1_iebc_20191031.shp"
 
 @st.cache_data
@@ -283,60 +284,60 @@ with col1:
 
 # --- COLUMN 2: MAP ---
 with col2:
-st.subheader(f"Geographic Map")
-
-# Define the center for Kenya
-
-# Check if GeoJSON data is available before plotting
-if geojson_data is None or GEOJSON_COUNTY_KEY is None:
-    st.error("Map visualization cannot load: GeoJSON data or its key is missing.")
-    # Stop execution for this column
-    fig_map = None
-else:
-    # Create the Choropleth map using Plotly Mapbox with minimalist styling
-    fig_map = px.choropleth_mapbox(
-        pillar_df, # Use the correctly filtered DF
-        geojson=geojson_data,
-        locations='County',            # Column in the DataFrame with the county name
-        featureidkey=GEOJSON_COUNTY_KEY, # Key in the GeoJSON that matches the county name
-        color=selected_indicator,      # Column to determine the color intensity (the metric)
-        hover_name='County',           # County name on hover
-        color_continuous_scale="Viridis", # Clean sequential color scale
-        
-        # --- Minimalist Styling Parameters ---
-        mapbox_style="white-bg",        # KEY STYLING: Provides the clean, white background
-        zoom=5.5,                       # Zoom optimized for Kenya
-        center={"lat": 0.0, "lon": 38.0},            # Center the map view
-        opacity=1,                      # Ensure the county fill is fully opaque
-        
-        # --- Labels for Hover/Legend ---
-        labels={'County': 'County', selected_indicator: 'Score (%)'},
-        title=f'County Performance Distribution: {selected_indicator}' # Set main map title
-    )
-
-    # 2. Refine the layout: remove margins and clean up color bar
-    fig_map.update_layout(
-        # Remove margins (top, right, bottom, left) to maximize map space
-        margin={"r": 0, "t": 0, "l": 0, "b": 0},
-        
-        # Customize Color Bar (Legend)
-        coloraxis_colorbar=dict(
-            title="Score (%)", # Simple title for the color bar
-            thicknessmode="pixels", 
-            thickness=15, 
-            len=0.7, # Takes up 70% of the map height
-        ),
-        
-        # Mapbox specific layout tweaks
-        mapbox=dict(
-            # These ensure no unnecessary movement or projection issues
-            bearing=0, 
-            pitch=0,
-        ),
-        
-        # Center the main title (set in px.choropleth_mapbox)
-        title_x=0.5, 
-    )
+    st.subheader(f"Geographic Map")
+    
+    # Define the center for Kenya
+    
+    # Check if GeoJSON data is available before plotting
+    if geojson_data is None or GEOJSON_COUNTY_KEY is None:
+        st.error("Map visualization cannot load: GeoJSON data or its key is missing.")
+        # Stop execution for this column
+        fig_map = None
+    else:
+        # Create the Choropleth map using Plotly Mapbox with minimalist styling
+        fig_map = px.choropleth_mapbox(
+            pillar_df, # Use the correctly filtered DF
+            geojson=geojson_data,
+            locations='County',            # Column in the DataFrame with the county name
+            featureidkey=GEOJSON_COUNTY_KEY, # Key in the GeoJSON that matches the county name
+            color=selected_indicator,      # Column to determine the color intensity (the metric)
+            hover_name='County',           # County name on hover
+            color_continuous_scale="Viridis", # Clean sequential color scale
+            
+            # --- Minimalist Styling Parameters ---
+            mapbox_style="white-bg",        # KEY STYLING: Provides the clean, white background
+            zoom=5.5,                       # Zoom optimized for Kenya
+            center={"lat": 0.0, "lon": 38.0},            # Center the map view
+            opacity=1,                      # Ensure the county fill is fully opaque
+            
+            # --- Labels for Hover/Legend ---
+            labels={'County': 'County', selected_indicator: 'Score (%)'},
+            title=f'County Performance Distribution: {selected_indicator}' # Set main map title
+        )
+    
+        # 2. Refine the layout: remove margins and clean up color bar
+        fig_map.update_layout(
+            # Remove margins (top, right, bottom, left) to maximize map space
+            margin={"r": 0, "t": 0, "l": 0, "b": 0},
+            
+            # Customize Color Bar (Legend)
+            coloraxis_colorbar=dict(
+                title="Score (%)", # Simple title for the color bar
+                thicknessmode="pixels", 
+                thickness=15, 
+                len=0.7, # Takes up 70% of the map height
+            ),
+            
+            # Mapbox specific layout tweaks
+            mapbox=dict(
+                # These ensure no unnecessary movement or projection issues
+                bearing=0, 
+                pitch=0,
+            ),
+            
+            # Center the main title (set in px.choropleth_mapbox)
+            title_x=0.5, 
+        )
         
     st.plotly_chart(fig_map, use_container_width=True)
 
@@ -348,6 +349,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
