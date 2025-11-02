@@ -321,7 +321,7 @@ with col2:
             color_continuous_scale="RdYlGn", # Clean sequential color scale
             
             # --- Minimalist Styling Parameters ---
-            mapbox_style="white-bg",        # KEY STYLING: Provides the clean, white background
+            mapbox_style="carto-positron",        # KEY STYLING: Provides the clean, white background
             zoom=5.5,                       # Zoom optimized for Kenya
             center={"lat": 0.0, "lon": 38.0},            # Center the map view
             opacity=1,                      # Ensure the county fill is fully opaque
@@ -370,6 +370,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
