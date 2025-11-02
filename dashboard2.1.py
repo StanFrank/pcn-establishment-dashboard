@@ -336,20 +336,20 @@ with col2:
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
         )
         fig_map.update_layout(
+            margin={"r":0, "t":0, "l":0, "b":0},
             coloraxis_colorbar=dict(
-                title=selected_indicator,
                 tickformat=".0f",
-                title_side="top",
-                x=0.95,          # horizontal position (0=left, 1=right)
+                x=0.97,              # move slightly inside the right border
                 xanchor="right",
-                y=0.5,            # vertical position (0=bottom, 1=top)
+                y=0.5,
                 yanchor="middle",
-                len=0.5,          # length of the colorbar (0–1 range)
-                thickness=12,     # thickness of the colorbar
-                bgcolor="rgba(255,255,255,0.7)",  # background to make it readable
-                outlinecolor="black",
+                len=0.6,
+                thickness=12,
+                bgcolor="rgba(255,255,255,0.6)",  # soft white background for readability
+                outlinecolor="rgba(0,0,0,0.2)",
                 outlinewidth=1,
-            )
+                title=None,          # 👈 remove title to match Streamlit’s default look
+            ),
         )
 
         
@@ -384,6 +384,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
