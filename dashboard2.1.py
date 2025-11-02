@@ -292,7 +292,7 @@ with col2:
     if geojson_data is None or GEOJSON_COUNTY_KEY is None:
         st.error("Map visualization cannot load: GeoJSON data or its key is missing.")
         # Stop execution for this column
-        fig_map = None
+        #fig_map = None
     else:
         # ensuring all 47 counties are present
         # Extract all 47 names from GeoJSON object
@@ -302,6 +302,11 @@ with col2:
         ]
         # Create dataframe with all 47 counties
         df_all_counties = pd.DataFrame ({'County':geojson_counties})
+        df_all_counties['County'] = df_all_counties['County'].str.strip().str.title()
+        df_all_counties['County'] = (
+            df_all_counties['County'].str.replace('County', '').str.strip()
+            .str.replace('/', ' ').str.replace('-', ' ').str.replace('  ', ' ').str.strip()
+        )
         df_score_data = pillar_df[['County', selected_indicator]]
         # merging with available counties with data
         df_map_data =df_all_counties.merge(
@@ -370,6 +375,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
