@@ -336,23 +336,25 @@ with col2:
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
         )
         fig_map.update_layout(
-            #margin={"r":0, "t":0, "l":0, "b":0},
+            margin={"r":0, "t":30, "l":0, "b":0},
             coloraxis_colorbar=dict(
-                title= "Score (%)",
-                title_side="top",
+                title=dict(
+                    text="Score (%)",
+                    side="top",
+                    font=dict(color="black", size=12)
+                ),
                 tickformat=".0f",
-                tickfont=dict(color="black", size=11), #
-                titlefont=dict(color="black", size=12, family="Arial Black"),                
-                x=0.97,              # move slightly inside the right border
+                tickfont=dict(color="black", size=11),
+                x=0.97,
                 xanchor="right",
                 y=0.5,
                 yanchor="middle",
                 len=0.6,
                 thickness=12,
-                bgcolor="rgba(255,255,255,0.6)",  # soft white background for readability
+                bgcolor="rgba(255,255,255,0.6)",
                 outlinecolor="rgba(0,0,0,0.2)",
-                outlinewidth=1,                     
-            ),
+                outlinewidth=1
+            )
         )
 
         
@@ -387,6 +389,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
