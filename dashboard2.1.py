@@ -84,81 +84,86 @@ def group_columns_by_pillar(df_raw, pillar_keywords):
 
     return pillar_dfs
 
+def standardize_name(name):
+    if pd.isna(name):
+        return name
+    name = str(name).strip().title()
+    
+    name_standardization_map = {
+        'West Pokot': 'West Pokot',
+        'Nairobi City County': 'Nairobi',
+        'Garissa County': 'Garissa',
+    }
+    name = name_standardization_map.get(name, name)
+    
+    name = (
+        name.replace('County', '').strip()
+        .replace('/', ' ').replace('-', ' ').replace('  ', ' ').strip()
+    )
+    return name
+
 SHAPEFILE_PATH = "ken_admbnda_adm1_iebc_20191031.shp"
 
 @st.cache_data
 def load_and_clean_data(file_path):
-    # Load the raw data
     df_raw = pd.read_csv(file_path, encoding='ISO-8859-1')
+    # ... (column cleaning code remains the same)
     
-    # 1. CLEANING: Standardize column names (strip whitespace, remove newlines)
-    df_raw.columns = df_raw.columns.str.strip().str.replace('\n', ' ').str.replace('\r', '').str.replace(' +', ' ', regex=True)
-    
-    
-    # 2. FILTER: Keep only the 6 county rows (excluding national averages)
-    df = df_raw.head(47).copy() 
-
-    # 3. CONVERSION & FILLING: Replace non-numeric with NaN and convert to numeric
-    df = df.replace(['N/A', 'N\\A', '#DIV/0!', '', ' '], np.nan)
+    df = df_raw.head(47).copy()
+    # ... (numeric conversion code remains the same)
     
     score_cols = [col for col in df.columns if col != 'County']
-
+    
     for col in score_cols:
         df[col] = pd.to_numeric(df[col], errors='coerce')
 
-    # --- COUNTY NAME STANDARDIZATION (MUST MATCH MAP LOGIC) ---
-    name_standardization_map = {
-        'West pokot': 'West Pokot',
-        'Nairobi City County': 'Nairobi',
-        'Garissa County': 'Garissa',
-        # Add any other required mappings here
-    }
- 
-    df['County'] = df['County'].str.strip().str.title()
-    df['County'] = df['County'].replace(name_standardization_map, regex=False) 
+    # --- CRITICAL FIX ---
+    # Apply the same standardization function to the CSV names
+    df['County'] = df['County'].apply(standardize_name)
     
-        
-        # This final clean-up is often necessary if the names are slightly different
-    df['County'] = (
-        df['County'].str.replace('County', '').str.strip()
-        .str.replace('/', ' ').str.replace('-', ' ').str.replace('  ', ' ').str.strip()
-    )
+    # ... (rest of filtering and fillna(0) code remains the same)
     
-        # Fill NaNs with 0 AFTER conversion (so 'N/A' becomes 0)
     df_filtered = df.dropna(subset=score_cols, how='all').copy()
-  
-    # Better approach: return the cleaned DF and the pillar DFs.
-    df_county_clean = df_filtered.fillna(0).copy() # The DF with raw column names, but cleaned data types
+    df_county_clean = df_filtered.fillna(0).copy()
     pillar_dfs = group_columns_by_pillar(df_county_clean, PILLAR_KEYWORDS)
-
-    # We need a single DF with all clean names for the map (df_county). 
-    # The pillar_dfs structure is confusing this.
-    # Let's create a simplified final DF containing only the required columns.
     
-    #all_clean_cols = ['County']
-    #for keywords in PILLAR_KEYWORDS.values():
-     #   all_clean_cols.extend(keywords)
-    
-    # We will assume that the raw DF (after stripping and cleaning) 
-    # contains the column names that are close enough to the keywords to be selected.
-    # We will simplify the return structure:
-    return df_county_clean, pillar_dfs # df_county_clean still has the raw/stripped names
-# --- Data Loading and Conversion Function ---
+    return df_county_clean, pillar_dfs
 @st.cache_data
 def load_geodata(shp_path):
-   
-    try:
-        # Load the Shapefile into a GeoDataFrame
-        gdf = gpd.read_file(shp_path)
+    
+    def standardize_name(name):
+        """Applies the universal cleaning rules."""
+        if pd.isna(name):
+            return name
+        name = str(name).strip().title()
         
-        # Ensure the GeoDataFrame is in the required WGS84 (EPSG:4326) CRS
-        # The PRJ file suggests it is, but this step is good practice.
+        # Apply specific mappings (e.g., Nairobi City County -> Nairobi)
+        name_standardization_map = {
+            'West Pokot': 'West Pokot', # Title should handle this
+            'Nairobi City County': 'Nairobi',
+            'Garissa County': 'Garissa',
+            # Add any other specific map fixes here if needed
+        }
+        name = name_standardization_map.get(name, name)
+        
+        # Remove 'County' suffix and normalize separators
+        name = (
+            name.replace('County', '').strip()
+            .replace('/', ' ').replace('-', ' ').replace('  ', ' ').strip()
+        )
+        return name
+
+    try:
+        gdf = gpd.read_file(shp_path)
         if gdf.crs != "EPSG:4326":
             gdf = gdf.to_crs(epsg=4326)
             
-        # Select only the geometry and the required attribute (ADM1_EN)
-        # This keeps the GeoJSON payload small and clean
+        # Select and rename the key column
         gdf_clean = gdf[['ADM1_EN', 'geometry']].rename(columns={'ADM1_EN': 'County_Name_Key'})
+        
+        # --- CRITICAL FIX ---
+        # Apply the standardization function directly to the GeoJSON names
+        gdf_clean['County_Name_Key'] = gdf_clean['County_Name_Key'].apply(standardize_name)
         
         # Convert the GeoDataFrame to a Python GeoJSON dictionary object
         geojson_data = json.loads(gdf_clean.to_json())
@@ -289,101 +294,69 @@ with col1:
 # --- COLUMN 2: MAP ---
 with col2:
     st.subheader(f"Geographic Map")
+
+    KENYA_CENTER = {"lat": 0.0, "lon": 38.0}
     
-    # Define the center for Kenya
-    
-    # Check if GeoJSON data is available before plotting
     if geojson_data is None or GEOJSON_COUNTY_KEY is None:
-        st.error("Map visualization cannot load: GeoJSON data or its key is missing.")
-        # Stop execution for this column
-        #fig_map = None
+        st.error("Map visualization cannot load: Geospatial data is missing.")
     else:
-        # ensuring all 47 counties are present
-        # Extract all 47 names from GeoJSON object
+        # 1. ROBUST DATA PREPARATION: Names are already cleaned in load_geodata and load_and_clean_data!
+        
+        # a. Extract ALL 47 county names from the GeoJSON (they are now clean)
         geojson_counties = [
-            feature['properties']['County_Name_Key']
+            feature['properties']['County_Name_Key'] 
             for feature in geojson_data['features']
         ]
-        # Create dataframe with all 47 counties
-        df_all_counties = pd.DataFrame ({'County':geojson_counties})
+
+        # b. Create a Base DataFrame with ALL 47 county names
+        df_all_counties = pd.DataFrame({'County': geojson_counties})
         
-        df_all_counties['County'] = df_all_counties['County'].str.strip().str.title()
+        # c. Prepare the Data to be merged (6-county data, names are already clean)
+        df_score_data = pillar_df[['County', selected_indicator]].copy()
+
+        # d. Left Merge (Should now be 100% successful for all 47 rows)
+        df_map_data = df_all_counties.merge(
+            df_score_data, 
+            on='County', 
+            how='left'
+        )
         
-        df_all_counties['County'] = (
-            df_all_counties['County'].str.replace('County', '').str.strip()
-            .str.replace('/', ' ').str.replace('-', ' ').str.replace('  ', ' ').str.strip()
-        )
-        df_score_data = pillar_df[['County', selected_indicator]]
-        # merging with available counties with data
-        df_map_data =df_all_counties.merge(
-            df_score_data,
-            on='County',
-            how='left' 
-        )
-
-        df_map_data[selected_indicator] = df_map_data[selected_indicator].fillna(-1)
-
-        max_score = df_map_data[selected_indicator].max()
-        min_score = df_map_data[selected_indicator].loc[df_map_data[selected_indicator] >= 0].min()
-
-        colors = ['#FFFFFF'] + px.colors.sequential.RdYlGn_r[1:]
-        if min_score is None or np.isnan(min_score):
-             min_score = 0
-             max_score = 100
-        color_range = [-1, min_score, max_score]
-        # Create the Choropleth map using Plotly Mapbox with minimalist styling
+        # 2. CREATE THE MAP
+        # Plotly will draw all 47 shapes. The 41 unmatched rows (NaN) will be transparent (showing the white background).
         fig_map = px.choropleth_mapbox(
-            df_map_data, # Use the correctly filtered DF
+            df_map_data, 
             geojson=geojson_data,
-            locations='County',            # Column in the DataFrame with the county name
-            featureidkey=GEOJSON_COUNTY_KEY, # Key in the GeoJSON that matches the county name
-            color=selected_indicator,      # Column to determine the color intensity (the metric)
-            hover_name='County',           # County name on hover
-            color_continuous_scale="RdYlGn", # Clean sequential color scale
+            locations='County',            
+            featureidkey=GEOJSON_COUNTY_KEY,
+            color=selected_indicator,      
+            hover_name='County',
             
-            # --- Minimalist Styling Parameters ---
-            mapbox_style="white-bg",        # KEY STYLING: Provides the clean, white background
-            zoom=5.5,                       # Zoom optimized for Kenya
-            center={"lat": 0.0, "lon": 38.0},            # Center the map view
-            opacity=1,                      # Ensure the county fill is fully opaque
+            color_continuous_scale="RdYlGn_r", # Green (high) to Red (low)
             
-            # --- Labels for Hover/Legend ---
+            # Styling Parameters
+            mapbox_style="white-bg",        
+            zoom=5.5,
+            center=KENYA_CENTER,
+            opacity=1,
             labels={'County': 'County', selected_indicator: 'Score (%)'},
-            title=f'County Performance Distribution: {selected_indicator}' # Set main map title
         )
 
+        # 3. REFINEMENT & STYLING
         fig_map.update_traces(
-            marker_line_width = 1,
-            marker_line_color='grey'
+            marker_line_width=1,
+            marker_line_color='grey', 
+            unselected={'opacity': 1}
         )
-    
-        # 2. Refine the layout: remove margins and clean up color bar
+        
         fig_map.update_layout(
-            coloraxis_colorscale=['#FFFFFF'] + list(fig_map.layout.coloraxis.colorscale), # Add white at the start
-            coloraxis_cmin=-1,
-            # Remove margins (top, right, bottom, left) to maximize map space
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
-            
-            # Customize Color Bar (Legend)
-            coloraxis_colorbar=dict(
-                title="Score (%)", # Simple title for the color bar
-                thicknessmode="pixels", 
-                thickness=15, 
-                len=0.7 # Takes up 70% of the map height
-            ),
-            
-            # Mapbox specific layout tweaks
-            mapbox=dict(
-                # These ensure no unnecessary movement or projection issues
-                bearing=0, 
-                pitch=0
-            ),
-            
-            # Center the main title (set in px.choropleth_mapbox)
+            coloraxis_colorbar=dict(title="Score (%)", thicknessmode="pixels", thickness=15, len=0.7),
+            mapbox=dict(bearing=0, pitch=0),
+            title_text=f"County Scores: {selected_indicator}", 
             title_x=0.5, 
         )
         
-    st.plotly_chart(fig_map, use_container_width=True)
+        st.plotly_chart(fig_map, use_container_width=True)
 
 
 
@@ -393,6 +366,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
