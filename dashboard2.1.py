@@ -342,13 +342,13 @@ with col2:
         )
 
         # --- 4. Manually make missing data appear white ---
-        fig.update_traces(marker=dict(line=dict(color="black", width=0.3), colorbar_tickformat=".0f"),
+        fig_map.update_traces(marker=dict(line=dict(color="black", width=0.3), colorbar_tickformat=".0f"),
                           selector=dict(type='choropleth'))
-        fig.update_layout(coloraxis_colorbar_title=selected_indicator, geo_bgcolor="white")
-        fig.update_coloraxes(colorbar_title=selected_indicator, showscale=True, cmin=None, cmax=None,
+        fig_map.update_layout(coloraxis_colorbar_title=selected_indicator, geo_bgcolor="white")
+        fig_map.update_coloraxes(colorbar_title=selected_indicator, showscale=True, cmin=None, cmax=None,
                              colorbar_tickformat=".0f", colorbar_title_side="right",
                              missingcolor="white")
-        fig.show()
+        
         st.plotly_chart(fig_map, use_container_width=True)
 
 
@@ -359,6 +359,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
