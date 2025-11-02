@@ -320,7 +320,17 @@ with col2:
             on='County',
             how='left' 
         )
-            
+
+        df_map_data[selected_indicator] = df_map_data[selected_indicator].fillna(-1)
+
+        max_score = df_map_data[selected_indicator].max()
+        min_score = df_map_data[selected_indicator].loc[df_map_data[selected_indicator] >= 0].min()
+
+        colors = ['#FFFFFF'] + px.colors.sequential.RdYlGn_r[1:]
+        if min_score is None or np.isnan(min_score):
+             min_score = 0
+             max_score = 100
+        color_range = [-1, min_score, max_score]
         # Create the Choropleth map using Plotly Mapbox with minimalist styling
         fig_map = px.choropleth_mapbox(
             df_map_data, # Use the correctly filtered DF
@@ -349,6 +359,8 @@ with col2:
     
         # 2. Refine the layout: remove margins and clean up color bar
         fig_map.update_layout(
+            coloraxis_colorscale=['#FFFFFF'] + list(fig_map.layout.coloraxis.colorscale), # Add white at the start
+            coloraxis_cmin=-1,
             # Remove margins (top, right, bottom, left) to maximize map space
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
             
@@ -381,6 +393,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
