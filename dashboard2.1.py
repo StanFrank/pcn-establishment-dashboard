@@ -302,9 +302,10 @@ with col2:
         ]
         # Create dataframe with all 47 counties
         df_all_counties = pd.DataFrame ({'County':geojson_counties})
+        df_score_data = pillar_df[['County', selected_indicator]]
         # merging with available counties with data
         df_map_data =df_all_counties.merge(
-            pillar_df[['County', selected_indicator]],
+            df_score_data,
             on='County',
             how='left' 
         )
@@ -369,6 +370,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
