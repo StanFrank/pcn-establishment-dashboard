@@ -350,6 +350,7 @@ with col2:
                 outlinecolor="black",
                 outlinewidth=1,
             )
+        )
 
         
         fig_map.add_annotation(
@@ -383,6 +384,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
