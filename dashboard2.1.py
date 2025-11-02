@@ -92,9 +92,8 @@ def load_and_clean_data(file_path):
     df_raw = pd.read_csv(file_path, encoding='ISO-8859-1')
     
     # 1. CLEANING: Standardize column names (strip whitespace, remove newlines)
-    df_raw.columns = df_raw.columns.str.strip()
-    df_raw.columns = df_raw.columns.str.replace('\n', ' ').str.replace('\r', '')
-    df_raw.columns = df_raw.columns.str.replace(' +', ' ', regex=True)
+    df_raw.columns = df_raw.columns.str.strip().str.replace('\n', ' ').str.replace('\r', '').str.replace(' +', ' ', regex=True)
+    
     
     # 2. FILTER: Keep only the 6 county rows (excluding national averages)
     df = df_raw.head(47).copy() 
@@ -103,22 +102,27 @@ def load_and_clean_data(file_path):
     df = df.replace(['N/A', 'N\\A', '#DIV/0!', '', ' '], np.nan)
     
     score_cols = [col for col in df.columns if col != 'County']
+
+    for col in score_cols:
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+
+    # --- COUNTY NAME STANDARDIZATION (MUST MATCH MAP LOGIC) ---
+    name_standardization_map = {
+        'West pokot': 'West Pokot',
+        'Nairobi City County': 'Nairobi',
+        'Garissa County': 'Garissa',
+        # Add any other required mappings here
+    }
+ 
+    df['County'] = df['County'].str.strip().str.title()
+    df['County'] = df['County'].replace(name_standardization_map, regex=False) 
     
-    #for col in score_cols:
-        # Convert to numeric, forcing errors to NaN (important for data type)
-       # df[col] = pd.to_numeric(df[col], errors='coerce')
-    #name_standardization_map = {
-        #    'West pokot': 'West Pokot',
-         #   'Nairobi City County': 'Nairobi',
-          #  'Garissa County': 'Garissa',
-            # Add any other county names that are not matching exactly
-     #   }
-        
-    df['County'] = df['County'].str.strip() # Good practice: remove leading/trailing spaces
-    #df['County'] = df['County'].replace(name_standardization_map, regex=False)
         
         # This final clean-up is often necessary if the names are slightly different
-    df['County'] = df['County'].str.replace('County', '').str.strip()
+    df['County'] = (
+        df['County'].str.replace('County', '').str.strip()
+        .str.replace('/', ' ').str.replace('-', ' ').str.replace('  ', ' ').str.strip()
+    )
     
         # Fill NaNs with 0 AFTER conversion (so 'N/A' becomes 0)
     df_filtered = df.dropna(subset=score_cols, how='all').copy()
@@ -131,9 +135,9 @@ def load_and_clean_data(file_path):
     # The pillar_dfs structure is confusing this.
     # Let's create a simplified final DF containing only the required columns.
     
-    all_clean_cols = ['County']
-    for keywords in PILLAR_KEYWORDS.values():
-        all_clean_cols.extend(keywords)
+    #all_clean_cols = ['County']
+    #for keywords in PILLAR_KEYWORDS.values():
+     #   all_clean_cols.extend(keywords)
     
     # We will assume that the raw DF (after stripping and cleaning) 
     # contains the column names that are close enough to the keywords to be selected.
@@ -302,7 +306,9 @@ with col2:
         ]
         # Create dataframe with all 47 counties
         df_all_counties = pd.DataFrame ({'County':geojson_counties})
+        
         df_all_counties['County'] = df_all_counties['County'].str.strip().str.title()
+        
         df_all_counties['County'] = (
             df_all_counties['County'].str.replace('County', '').str.strip()
             .str.replace('/', ' ').str.replace('-', ' ').str.replace('  ', ' ').str.strip()
@@ -338,7 +344,7 @@ with col2:
 
         fig_map.update_traces(
             marker_line_width = 1,
-            marker_line_color='black'
+            marker_line_color='grey'
         )
     
         # 2. Refine the layout: remove margins and clean up color bar
@@ -351,14 +357,14 @@ with col2:
                 title="Score (%)", # Simple title for the color bar
                 thicknessmode="pixels", 
                 thickness=15, 
-                len=0.7, # Takes up 70% of the map height
+                len=0.7 # Takes up 70% of the map height
             ),
             
             # Mapbox specific layout tweaks
             mapbox=dict(
                 # These ensure no unnecessary movement or projection issues
                 bearing=0, 
-                pitch=0,
+                pitch=0
             ),
             
             # Center the main title (set in px.choropleth_mapbox)
@@ -375,6 +381,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
