@@ -286,7 +286,6 @@ with col2:
 st.subheader(f"Geographic Map")
 
 # Define the center for Kenya
-KENYA_CENTER = {"lat": 0.0, "lon": 38.0}
 
 # Check if GeoJSON data is available before plotting
 if geojson_data is None or GEOJSON_COUNTY_KEY is None:
@@ -307,7 +306,7 @@ else:
         # --- Minimalist Styling Parameters ---
         mapbox_style="white-bg",        # KEY STYLING: Provides the clean, white background
         zoom=5.5,                       # Zoom optimized for Kenya
-        center=KENYA_CENTER,            # Center the map view
+        center={"lat": 0.0, "lon": 38.0},            # Center the map view
         opacity=1,                      # Ensure the county fill is fully opaque
         
         # --- Labels for Hover/Legend ---
@@ -343,27 +342,13 @@ else:
 
 
 
-if geojson_data is None or GEOJSON_COUNTY_KEY is None:
-    st.error("Map visualization cannot load: GeoJSON data or its key is missing.")
-    # You may want to stop the script here or skip the map drawing.
-else:
-    # --- COLUMN 2: MAP ---
-    with col2:
-        # ... map code runs here ...
-        fig_map = px.choropleth_mapbox(
-            pillar_df, 
-            geojson=geojson_data, 
-            locations='County',           
-            featureidkey=GEOJSON_COUNTY_KEY, # Now safely defined
-            # ... (rest of map code) ...
-        )
-
 st.markdown("""---""")
 
 st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
