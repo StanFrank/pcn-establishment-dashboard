@@ -104,15 +104,15 @@ def load_and_clean_data(file_path):
     
     score_cols = [col for col in df.columns if col != 'County']
     
-    for col in score_cols:
+    #for col in score_cols:
         # Convert to numeric, forcing errors to NaN (important for data type)
-        df[col] = pd.to_numeric(df[col], errors='coerce')
-    name_standardization_map = {
-            'West pokot': 'West Pokot',
-            'Nairobi City County': 'Nairobi',
-            'Garissa County': 'Garissa',
+       # df[col] = pd.to_numeric(df[col], errors='coerce')
+    #name_standardization_map = {
+        #    'West pokot': 'West Pokot',
+         #   'Nairobi City County': 'Nairobi',
+          #  'Garissa County': 'Garissa',
             # Add any other county names that are not matching exactly
-        }
+     #   }
         
     df['County'] = df['County'].str.strip() # Good practice: remove leading/trailing spaces
     df['County'] = df['County'].replace(name_standardization_map, regex=False)
@@ -321,7 +321,7 @@ with col2:
             color_continuous_scale="RdYlGn", # Clean sequential color scale
             
             # --- Minimalist Styling Parameters ---
-            mapbox_style="carto-positron",        # KEY STYLING: Provides the clean, white background
+            mapbox_style="white-bg",        # KEY STYLING: Provides the clean, white background
             zoom=5.5,                       # Zoom optimized for Kenya
             center={"lat": 0.0, "lon": 38.0},            # Center the map view
             opacity=1,                      # Ensure the county fill is fully opaque
@@ -370,6 +370,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
