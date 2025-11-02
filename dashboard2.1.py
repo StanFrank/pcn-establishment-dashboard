@@ -334,13 +334,12 @@ with col2:
                 # Draw missing counties as white polygons with grey borders
                 fig_map.add_trace(
                     go.Choroplethmapbox(
-                        geojson={"type": "FeatureCollection", "features": [feature]},
+                        geojson=feature,
                         locations=[county_name],
                         z=[0],
                         colorscale=[[0, "white"], [1, "white"]],
                         showscale=False,
-                        marker_line_width=1,
-                        marker_line_color="grey",
+                        marker_line= {'width':1, 'color': 'grey'},
                         hoverinfo="none",
                         opacity=1
                     )
@@ -366,6 +365,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
