@@ -284,7 +284,6 @@ with col1:
     st.plotly_chart(fig_bar, use_container_width=True)
 
 # --- COLUMN 2: MAP ---
-# --- COLUMN 2: MAP ---
 with col2:
     st.subheader("Geographic Map")
 
@@ -314,11 +313,11 @@ with col2:
             featureidkey=GEOJSON_COUNTY_KEY,
             color=selected_indicator,
             hover_name='County',
-            color_continuous_scale="RdYlGn_r",
+            color_continuous_scale="RdYlGn",
             mapbox_style="white-bg",
-            zoom=5.8,
+            zoom=5.0,
             center=KENYA_CENTER,
-            opacity=0.9,
+            opacity=0.8,
             labels={'County': 'County', selected_indicator: 'Score (%)'},
         )
 
@@ -354,6 +353,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
