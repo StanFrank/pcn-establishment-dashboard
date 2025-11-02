@@ -284,46 +284,29 @@ with col1:
     st.plotly_chart(fig_bar, use_container_width=True)
 
 # --- COLUMN 2: MAP ---
-
 with col2:
-    st.subheader("Geographic Map")
+    st.subheader(f"Geographic Map")
 
     KENYA_CENTER = {"lat": 0.5, "lon": 37.9}
 
     if geojson_data is None or GEOJSON_COUNTY_KEY is None:
         st.error("Map visualization cannot load: Geospatial data is missing.")
     else:
-        # --- 1. PREP DATA ---
+        # --- 1. DATA PREPARATION ---
         geojson_counties = [
-            f['properties']['County_Name_Key']
-            for f in geojson_data['features']
+            feature['properties']['County_Name_Key'] 
+            for feature in geojson_data['features']
         ]
 
         df_all_counties = pd.DataFrame({'County': geojson_counties})
         df_score_data = pillar_df[['County', selected_indicator]].copy()
+
+        # Left merge ensures all 47 counties appear
         df_map_data = df_all_counties.merge(df_score_data, on='County', how='left')
 
-        # --- 2. BASE MAP (only data counties) ---
-        # --- DEBUGGING: Verify County Name Matches Between GeoJSON and DataFrame ---
-
-        geojson_counties = [f["properties"]["County_Name_Key"] for f in geojson_data["features"]]
-        df_counties = pillar_df["County"].unique().tolist()
-        
-        # Normalize both (remove whitespace, lowercase)
-        geojson_norm = [c.strip().lower() for c in geojson_counties]
-        df_norm = [c.strip().lower() for c in df_counties]
-        
-        # Check matches and mismatches
-        matched = sorted(set(geojson_norm) & set(df_norm))
-        missing_in_df = sorted(set(geojson_norm) - set(df_norm))
-        extra_in_df = sorted(set(df_norm) - set(geojson_norm))
-        
-        st.markdown("### 🧭 GeoJSON–Data Match Check")
-        st.write(f"✅ Matched counties: {len(matched)} / {len(geojson_norm)}")
-        st.write(f"🟡 Present in GeoJSON but missing in DataFrame ({len(missing_in_df)}):", missing_in_df)
-        st.write(f"🔵 Present in DataFrame but missing in GeoJSON ({len(extra_in_df)}):", extra_in_df)
+        # --- 2. CREATE MAP ---
         fig_map = px.choropleth_mapbox(
-            df_map_data.dropna(subset=[selected_indicator]),
+            df_map_data,
             geojson=geojson_data,
             locations='County',
             featureidkey=GEOJSON_COUNTY_KEY,
@@ -333,44 +316,35 @@ with col2:
             mapbox_style="white-bg",
             zoom=5.8,
             center=KENYA_CENTER,
-            opacity=0.9,
+            opacity=0.85,
             labels={'County': 'County', selected_indicator: 'Score (%)'},
         )
 
-        # --- 3. GREY BORDERS ---
-        fig_map.update_traces(marker_line={'width': 1, 'color': 'grey'})
+        # --- 3. REFINEMENT & STYLING ---
+        # Force all polygons (even those with NaN) to be drawn with borders
+        fig_map.update_traces(
+            marker_line={'width': 1, 'color': 'grey'},
+            selector=dict(type='choroplethmapbox'),
+            zmin=0,
+            zmax=100,
+            showscale=True
+        )
 
-        # --- 4. ADD WHITE OVERLAY FOR MISSING COUNTIES ---
-        missing_counties = df_map_data[df_map_data[selected_indicator].isna()]['County'].tolist()
-
-        if missing_counties:
-            missing_features = [
-                f for f in geojson_data["features"]
-                if f["properties"]["County_Name_Key"] in missing_counties
-            ]
-            if missing_features:
-                fig_map.add_trace(
-                    go.Choroplethmapbox(
-                        geojson={"type": "FeatureCollection", "features": missing_features},
-                        locations=[f["properties"]["County_Name_Key"] for f in missing_features],
-                        z=[0] * len(missing_features),
-                        colorscale=[[0, "white"], [1, "white"]],
-                        showscale=False,
-                        marker_line={'width': 1, 'color': 'grey'},
-                        hoverinfo="none",
-                        opacity=1
-                    )
-                )
-
-        # --- 5. CLEAN LAYOUT ---
+        # Optional: define color for missing values
         fig_map.update_layout(
             coloraxis_colorbar=dict(
                 title="Score (%)",
                 thicknessmode="pixels", thickness=15, len=0.7
             ),
+            coloraxis=dict(colorbar_bgcolor='white', colorbar_tickcolor='black', cmin=0, cmax=100),
             mapbox=dict(bearing=0, pitch=0),
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
         )
+
+        # Add a white fill for missing values (NaN)
+        fig_map.data[0].colorscale = [
+            [0, "white"], [0.00001, "white"], [0.00002, "white"]
+        ] + fig_map.data[0].colorscale
 
         st.plotly_chart(fig_map, use_container_width=True)
 
@@ -382,6 +356,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
