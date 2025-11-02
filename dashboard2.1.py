@@ -284,6 +284,7 @@ with col1:
     st.plotly_chart(fig_bar, use_container_width=True)
 
 # --- COLUMN 2: MAP ---
+
 with col2:
     st.subheader("Geographic Map")
 
@@ -303,6 +304,24 @@ with col2:
         df_map_data = df_all_counties.merge(df_score_data, on='County', how='left')
 
         # --- 2. BASE MAP (only data counties) ---
+        # --- DEBUGGING: Verify County Name Matches Between GeoJSON and DataFrame ---
+
+        geojson_counties = [f["properties"]["County_Name_Key"] for f in geojson_data["features"]]
+        df_counties = pillar_df["County"].unique().tolist()
+        
+        # Normalize both (remove whitespace, lowercase)
+        geojson_norm = [c.strip().lower() for c in geojson_counties]
+        df_norm = [c.strip().lower() for c in df_counties]
+        
+        # Check matches and mismatches
+        matched = sorted(set(geojson_norm) & set(df_norm))
+        missing_in_df = sorted(set(geojson_norm) - set(df_norm))
+        extra_in_df = sorted(set(df_norm) - set(geojson_norm))
+        
+        st.markdown("### 🧭 GeoJSON–Data Match Check")
+        st.write(f"✅ Matched counties: {len(matched)} / {len(geojson_norm)}")
+        st.write(f"🟡 Present in GeoJSON but missing in DataFrame ({len(missing_in_df)}):", missing_in_df)
+        st.write(f"🔵 Present in DataFrame but missing in GeoJSON ({len(extra_in_df)}):", extra_in_df)
         fig_map = px.choropleth_mapbox(
             df_map_data.dropna(subset=[selected_indicator]),
             geojson=geojson_data,
@@ -363,6 +382,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
