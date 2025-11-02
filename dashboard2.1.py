@@ -67,29 +67,32 @@ PILLAR_KEYWORDS = {
 
 # --- 2. DATA LOADING AND CLEANING FUNCTIONS ---
 def standardize_name(name):
-    """Applies the universal cleaning rules, robustly handling all types of spaces."""
+    """Applies ultra-aggressive cleaning to ensure name matching."""
     if pd.isna(name):
         return name
+    
+    # 1. Convert to string, strip surrounding whitespace, and convert to Title Case.
     name = str(name).strip().title()
     
-    # Apply specific mappings (Keep this section clean)
-    name_standardization_map = {
-        'Nairobi City County': 'Nairobi',
-        'Garissa County': 'Garissa',
-    }
-    name = name_standardization_map.get(name, name)
-    
-    # --- CRITICAL CLEANUP: Normalize Spaces and Separators ---
+    # 2. Normalize common separators and non-breaking spaces to a standard space.
     name = (
-        name.replace('County', '').strip()
-        .replace('\xa0', ' ') # Explicitly replace non-breaking space
+        name.replace('\xa0', ' ') # Non-breaking space
         .replace('/', ' ').replace('-', ' ')
+        .replace('County', '').strip() # Remove 'County' suffix aggressively
     )
     
-    # Replace multiple spaces with a single space, then strip again
+    # 3. Aggressively consolidate all multiple spaces into a single space.
     while '  ' in name:
         name = name.replace('  ', ' ')
         
+    # 4. Apply specific edge-case mappings AFTER general cleaning (e.g., Nairobi City).
+    # Since we removed 'County' above, we only need to catch the "City" part now.
+    name_standardization_map = {
+        'Nairobi City': 'Nairobi',
+    }
+    name = name_standardization_map.get(name, name)
+        
+    # 5. Final strip to eliminate any leading/trailing spaces.
     return name.strip()
 
 
@@ -354,6 +357,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
