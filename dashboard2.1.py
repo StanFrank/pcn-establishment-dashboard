@@ -1,10 +1,26 @@
 import pandas as pd
-import geopandas as gpd
 import streamlit as st
 import numpy as np
-import json
 import plotly.express as px
 import io
+
+def standardize_name(name):
+    if pd.isna(name):
+        return name
+    name = str(name).strip().title()
+    
+    name_standardization_map = {
+        'West Pokot': 'West Pokot',
+        'Nairobi City County': 'Nairobi',
+        'Garissa County': 'Garissa',
+    }
+    name = name_standardization_map.get(name, name)
+    
+    name = (
+        name.replace('County', '').strip()
+        .replace('/', ' ').replace('-', ' ').replace('  ', ' ').strip()
+    )
+    return name
 # import geopandas as gpd # NOTE: geopandas is not needed for Plotly choropleth with GeoJSON
 
 # --- 1. CONFIGURATION AND DATA STRUCTURES ---
@@ -84,74 +100,38 @@ def group_columns_by_pillar(df_raw, pillar_keywords):
 
     return pillar_dfs
 
-def standardize_name(name):
-    if pd.isna(name):
-        return name
-    name = str(name).strip().title()
-    
-    name_standardization_map = {
-        'West Pokot': 'West Pokot',
-        'Nairobi City County': 'Nairobi',
-        'Garissa County': 'Garissa',
-    }
-    name = name_standardization_map.get(name, name)
-    
-    name = (
-        name.replace('County', '').strip()
-        .replace('/', ' ').replace('-', ' ').replace('  ', ' ').strip()
-    )
-    return name
+
 
 SHAPEFILE_PATH = "ken_admbnda_adm1_iebc_20191031.shp"
 
 @st.cache_data
 def load_and_clean_data(file_path):
     df_raw = pd.read_csv(file_path, encoding='ISO-8859-1')
-    # ... (column cleaning code remains the same)
+    df_raw.columns = df_raw.columns.str.strip().str.replace('\n', ' ').str.replace('\r', '').str.replace(' +', ' ', regex=True)
     
     df = df_raw.head(47).copy()
-    # ... (numeric conversion code remains the same)
+    df = df.replace(['N/A', 'N\\A', '#DIV/0!', '', ' '], np.nan)
     
     score_cols = [col for col in df.columns if col != 'County']
     
     for col in score_cols:
         df[col] = pd.to_numeric(df[col], errors='coerce')
 
-    # --- CRITICAL FIX ---
-    # Apply the same standardization function to the CSV names
+    # --- CRITICAL FIX: Apply global standardization ---
     df['County'] = df['County'].apply(standardize_name)
     
-    # ... (rest of filtering and fillna(0) code remains the same)
-    
+    # Filtering (to prevent plotting zero-data counties)
     df_filtered = df.dropna(subset=score_cols, how='all').copy()
     df_county_clean = df_filtered.fillna(0).copy()
+    
     pillar_dfs = group_columns_by_pillar(df_county_clean, PILLAR_KEYWORDS)
     
     return df_county_clean, pillar_dfs
+    
 @st.cache_data
 def load_geodata(shp_path):
-    
-    def standardize_name(name):
-        """Applies the universal cleaning rules."""
-        if pd.isna(name):
-            return name
-        name = str(name).strip().title()
-        
-        # Apply specific mappings (e.g., Nairobi City County -> Nairobi)
-        name_standardization_map = {
-            'West Pokot': 'West Pokot', # Title should handle this
-            'Nairobi City County': 'Nairobi',
-            'Garissa County': 'Garissa',
-            # Add any other specific map fixes here if needed
-        }
-        name = name_standardization_map.get(name, name)
-        
-        # Remove 'County' suffix and normalize separators
-        name = (
-            name.replace('County', '').strip()
-            .replace('/', ' ').replace('-', ' ').replace('  ', ' ').strip()
-        )
-        return name
+    import geopandas as gpd
+    import json
 
     try:
         gdf = gpd.read_file(shp_path)
@@ -300,9 +280,9 @@ with col2:
     if geojson_data is None or GEOJSON_COUNTY_KEY is None:
         st.error("Map visualization cannot load: Geospatial data is missing.")
     else:
-        # 1. ROBUST DATA PREPARATION: Names are already cleaned in load_geodata and load_and_clean_data!
+        # 1. DATA PREPARATION (Names are guaranteed to be clean now)
         
-        # a. Extract ALL 47 county names from the GeoJSON (they are now clean)
+        # a. Extract ALL 47 county names from the GeoJSON
         geojson_counties = [
             feature['properties']['County_Name_Key'] 
             for feature in geojson_data['features']
@@ -311,10 +291,10 @@ with col2:
         # b. Create a Base DataFrame with ALL 47 county names
         df_all_counties = pd.DataFrame({'County': geojson_counties})
         
-        # c. Prepare the Data to be merged (6-county data, names are already clean)
+        # c. Prepare the Data to be merged
         df_score_data = pillar_df[['County', selected_indicator]].copy()
 
-        # d. Left Merge (Should now be 100% successful for all 47 rows)
+        # d. Left Merge: Creates 47 rows (6 with scores, 41 with NaN)
         df_map_data = df_all_counties.merge(
             df_score_data, 
             on='County', 
@@ -322,7 +302,7 @@ with col2:
         )
         
         # 2. CREATE THE MAP
-        # Plotly will draw all 47 shapes. The 41 unmatched rows (NaN) will be transparent (showing the white background).
+        # Plotly handles NaN by making the county transparent (white background shows through)
         fig_map = px.choropleth_mapbox(
             df_map_data, 
             geojson=geojson_data,
@@ -331,7 +311,7 @@ with col2:
             color=selected_indicator,      
             hover_name='County',
             
-            color_continuous_scale="RdYlGn_r", # Green (high) to Red (low)
+            color_continuous_scale="RdYlGn_r", 
             
             # Styling Parameters
             mapbox_style="white-bg",        
@@ -344,7 +324,7 @@ with col2:
         # 3. REFINEMENT & STYLING
         fig_map.update_traces(
             marker_line_width=1,
-            marker_line_color='grey', 
+            marker_line_color='grey', # This will draw the border for all 47 counties
             unselected={'opacity': 1}
         )
         
@@ -359,13 +339,13 @@ with col2:
         st.plotly_chart(fig_map, use_container_width=True)
 
 
-
 st.markdown("""---""")
 
 st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
