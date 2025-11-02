@@ -302,7 +302,7 @@ with col2:
             featureidkey=GEOJSON_COUNTY_KEY, # Key in the GeoJSON that matches the county name
             color=selected_indicator,      # Column to determine the color intensity (the metric)
             hover_name='County',           # County name on hover
-            color_continuous_scale="Viridis", # Clean sequential color scale
+            color_continuous_scale="RdYlGn", # Clean sequential color scale
             
             # --- Minimalist Styling Parameters ---
             mapbox_style="white-bg",        # KEY STYLING: Provides the clean, white background
@@ -349,6 +349,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
