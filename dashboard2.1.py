@@ -342,7 +342,7 @@ with col2:
             x=0.5,        
             y=0.98, 
             showarrow=False,
-            font=dict(size=18, color="black", family="Arial Black"),
+            font=dict(size=9, color="black", family="Arial Black"),
             bgcolor="rgba(255,255,255,0.7)",
             bordercolor="black",
             borderwidth=1,
@@ -366,6 +366,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
