@@ -294,9 +294,24 @@ with col2:
         # Stop execution for this column
         fig_map = None
     else:
+        # ensuring all 47 counties are present
+        # Extract all 47 names from GeoJSON object
+        geojson_counties = [
+            feature['properties']['County_Name_Key']
+            for feature in geojson_data['features']
+        ]
+        # Create dataframe with all 47 counties
+        df_all_counties = pd.DataFrame ({'County':geojson_counties)
+        # merging with available counties with data
+        df_map_data =df_all_counties.merge(
+            pillar_df[['county': selected_indicator]],
+            on='County',
+            how='left' 
+        )
+            
         # Create the Choropleth map using Plotly Mapbox with minimalist styling
         fig_map = px.choropleth_mapbox(
-            pillar_df, # Use the correctly filtered DF
+            df_map_data, # Use the correctly filtered DF
             geojson=geojson_data,
             locations='County',            # Column in the DataFrame with the county name
             featureidkey=GEOJSON_COUNTY_KEY, # Key in the GeoJSON that matches the county name
@@ -313,6 +328,11 @@ with col2:
             # --- Labels for Hover/Legend ---
             labels={'County': 'County', selected_indicator: 'Score (%)'},
             title=f'County Performance Distribution: {selected_indicator}' # Set main map title
+        )
+
+        fig_map.update_traces(
+            marker_line_width = 1,
+            marker_line_color='black'
         )
     
         # 2. Refine the layout: remove margins and clean up color bar
@@ -349,6 +369,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
