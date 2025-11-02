@@ -331,11 +331,11 @@ with col2:
         )
 
         # 3. REFINEMENT & STYLING
-        #fig_map.update_traces(
-         #   marker_line_width=1,
-          #  marker_line_color='grey', # This will draw the border for all 47 counties
-           # unselected={'opacity': 1}
-        #)
+        fig_map.update_traces(
+            marker_line_width=1,
+            marker_line_color='grey', # This will draw the border for all 47 counties
+            unselected={'opacity': 1}
+        )
         
         fig_map.update_layout(
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
@@ -354,6 +354,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
