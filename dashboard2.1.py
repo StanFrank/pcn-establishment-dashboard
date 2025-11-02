@@ -300,12 +300,9 @@ with col2:
         df_score_data = pillar_df[['County', selected_indicator]].copy()
         df_map_data = df_all_counties.merge(df_score_data, on='County', how='left')
 
-        # --- 2. CREATE MAP ---
-        # Fill NaN with 0 temporarily (so they render as the lowest value)
-        df_map_data[selected_indicator] = df_map_data[selected_indicator].fillna(0)
-
+        # --- 2. CREATE BASE MAP with COLOR ONLY WHERE DATA EXISTS ---
         fig_map = px.choropleth_mapbox(
-            df_map_data,
+            df_map_data.dropna(subset=[selected_indicator]),  # only color counties with data
             geojson=geojson_data,
             locations='County',
             featureidkey=GEOJSON_COUNTY_KEY,
@@ -319,12 +316,35 @@ with col2:
             labels={'County': 'County', selected_indicator: 'Score (%)'},
         )
 
-        # --- 3. REFINEMENT & STYLING ---
+        # --- 3. ADD COUNTY BORDERS FOR ALL 47 COUNTIES ---
         fig_map.update_traces(
             marker_line={'width': 1, 'color': 'grey'},
             selector=dict(type='choroplethmapbox')
         )
 
+        # --- 4. ADD A WHITE OUTLINE LAYER FOR MISSING COUNTIES ---
+        missing_counties = df_map_data[df_map_data[selected_indicator].isna()]['County'].tolist()
+
+        # Add a transparent layer for missing counties
+        for feature in geojson_data["features"]:
+            county_name = feature["properties"]["County_Name_Key"]
+            if county_name in missing_counties:
+                # Draw missing counties as white polygons with grey borders
+                fig_map.add_trace(
+                    go.Choroplethmapbox(
+                        geojson={"type": "FeatureCollection", "features": [feature]},
+                        locations=[county_name],
+                        z=[0],
+                        colorscale=[[0, "white"], [1, "white"]],
+                        showscale=False,
+                        marker_line_width=1,
+                        marker_line_color="grey",
+                        hoverinfo="none",
+                        opacity=1
+                    )
+                )
+
+        # --- 5. LAYOUT CLEANUP ---
         fig_map.update_layout(
             coloraxis_colorbar=dict(
                 title="Score (%)",
@@ -333,15 +353,6 @@ with col2:
             mapbox=dict(bearing=0, pitch=0),
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
         )
-
-        # --- 4. Manually make missing data appear white ---
-        # Recolor counties with 0 (previously NaN) to white
-        for feature in geojson_data["features"]:
-            county_name = feature["properties"]["County_Name_Key"]
-            if county_name in df_map_data["County"].values:
-                val = df_map_data.loc[df_map_data["County"] == county_name, selected_indicator].iloc[0]
-                if val == 0:
-                    feature["properties"]["fill"] = "white"
 
         st.plotly_chart(fig_map, use_container_width=True)
 
@@ -353,6 +364,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
