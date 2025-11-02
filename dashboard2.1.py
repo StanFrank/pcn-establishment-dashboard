@@ -335,6 +335,21 @@ with col2:
             mapbox=dict(bearing=0, pitch=0),
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
         )
+        fig_map.update_layout(
+            title={
+                "text": f"{selected_indicator} by County",
+                "x": 0.5,
+                "xanchor": "center",
+                "yanchor": "top",
+                "font": dict(size=18, color="#1E90FF", family="Arial Black")
+    },
+    margin={"r":0, "t":50, "l":0, "b":0},
+    coloraxis_colorbar=dict(
+        title=selected_indicator,
+        tickformat=".0f",
+        title_side="right",
+    ),
+)
 
         # --- 4. Manually make missing data appear white ---
         # Recolor counties with 0 (previously NaN) to white
@@ -353,6 +368,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
