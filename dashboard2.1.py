@@ -284,6 +284,7 @@ with col1:
     st.plotly_chart(fig_bar, use_container_width=True)
 
 # --- COLUMN 2: MAP ---
+# --- COLUMN 2: MAP ---
 with col2:
     st.subheader("Geographic Map")
 
@@ -302,12 +303,11 @@ with col2:
         df_score_data = pillar_df[['County', selected_indicator]].copy()
         df_map_data = df_all_counties.merge(df_score_data, on='County', how='left')
 
-        # --- 2. CREATE MAP ---
-        # Fill NaN with 0 temporarily (so they render as the lowest value)
+        # --- 🩵 Handle missing data properly before plotting ---
         df_map_data[selected_indicator] = pd.to_numeric(df_map_data[selected_indicator], errors="coerce")
-        df_map_data[selected_indicator] = df_map_data[selected_indicator].replace({0: np.nan})
-
-
+        # Keep NaN as-is (don’t replace with 0)
+        
+        # --- 2. CREATE MAP ---
         fig_map = px.choropleth_mapbox(
             df_map_data,
             geojson=geojson_data,
@@ -320,38 +320,30 @@ with col2:
             zoom=5.0,
             center=KENYA_CENTER,
             opacity=0.8,
-            labels={'County': 'County', selected_indicator: 'Score (%)'},            
+            labels={'County': 'County', selected_indicator: 'Score (%)'},
         )
 
-        # --- 3. REFINEMENT & STYLING ---
+        # --- 3. STYLE AND WHITE BACKGROUND ---
         fig_map.update_traces(
-            marker_line_width=0.5,
-            marker_line_color="white",
+            marker_line_width=0.6,
+            marker_line_color="black",
             hovertemplate="<b>%{location}</b><br>Score: %{z:.1f}%<extra></extra>",
-            marker=dict(opacity=0.85),
-        )        
+        )
 
-        # --- 🩶 Make missing counties appear white ---
-        # Replace NaN color values with white (no fill)
-        for trace in fig_map.data:
-            z = np.array(trace.z)
-            mask = np.isnan(z)
-            if mask.any():
-                trace.z = np.where(mask, None, z)  # hide missing data
-                trace.marker.colorscale = trace.marker.colorscale
-        
         fig_map.update_layout(
-            margin={"r":0, "t":30, "l":0, "b": 0},
+            margin={"r": 0, "t": 30, "l": 0, "b": 0},
             coloraxis_colorbar=dict(
                 title=selected_indicator,
                 tickformat=".0f",
                 title_side="right",
             ),
             paper_bgcolor="white",
+            mapbox=dict(style="white-bg"),
         )
-        # --- 4. Manually make missing data appear white ---
-        # --- Handle missing data properly before plotting ---
-      
+
+        # --- 4. Make missing data appear white ---
+        # This works for mapbox: counties with NaN simply don’t get colored.
+        # To emphasize boundaries, we keep thin black borders.
         st.plotly_chart(fig_map, use_container_width=True)
 
 st.markdown("""---""")
@@ -360,6 +352,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
