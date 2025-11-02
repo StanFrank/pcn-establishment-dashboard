@@ -2,9 +2,11 @@ import pandas as pd
 import streamlit as st
 import numpy as np
 import plotly.express as px
+import plotly.graph_objects as go
 import io
 import geopandas as gpd
 import json
+
 
 # --- 1. CONFIGURATION AND DATA STRUCTURES ---
 
@@ -364,6 +366,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
