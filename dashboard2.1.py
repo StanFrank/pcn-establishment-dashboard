@@ -306,7 +306,7 @@ with col2:
         # Fill NaN with 0 temporarily (so they render as the lowest value)
         df_map_data[selected_indicator] = df_map_data[selected_indicator].fillna(0)
 
-        fig_map = px.choropleth(
+        fig_map = px.choropleth_mapbox(
             df_map_data,
             geojson=geojson_data,
             locations='County',
@@ -314,10 +314,10 @@ with col2:
             color=selected_indicator,
             hover_name='County',
             color_continuous_scale="RdYlGn",
-            #mapbox_style="white-bg",
-            #zoom=5.0,
-            #center=KENYA_CENTER,
-            opacity=0.9,
+            mapbox_style="white-bg",
+            zoom=5.0,
+            center=KENYA_CENTER,
+            opacity=0.8,
             labels={'County': 'County', selected_indicator: 'Score (%)'},
         )
 
@@ -359,6 +359,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
