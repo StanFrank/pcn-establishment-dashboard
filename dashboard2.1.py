@@ -336,7 +336,7 @@ with col2:
             margin={"r": 0, "t": 0, "l": 0, "b": 0},
         )
         fig_map.update_layout(
-            margin={"r":0, "t":0, "l":0, "b":0},
+            #margin={"r":0, "t":0, "l":0, "b":0},
             coloraxis_colorbar=dict(
                 title= "Score (%)",
                 title_side="top",
@@ -387,6 +387,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
