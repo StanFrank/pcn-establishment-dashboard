@@ -292,25 +292,25 @@ with col2:
     if geojson_data is None or GEOJSON_COUNTY_KEY is None:
         st.error("Map visualization cannot load: Geospatial data is missing.")
     else:
-        # --- 1. DATA PREPARATION ---
+        # --- 1. PREP DATA ---
         geojson_counties = [
-            feature['properties']['County_Name_Key']
-            for feature in geojson_data['features']
+            f['properties']['County_Name_Key']
+            for f in geojson_data['features']
         ]
 
         df_all_counties = pd.DataFrame({'County': geojson_counties})
         df_score_data = pillar_df[['County', selected_indicator]].copy()
         df_map_data = df_all_counties.merge(df_score_data, on='County', how='left')
 
-        # --- 2. CREATE BASE MAP with COLOR ONLY WHERE DATA EXISTS ---
+        # --- 2. BASE MAP (only data counties) ---
         fig_map = px.choropleth_mapbox(
-            df_map_data.dropna(subset=[selected_indicator]),  # only color counties with data
+            df_map_data.dropna(subset=[selected_indicator]),
             geojson=geojson_data,
             locations='County',
             featureidkey=GEOJSON_COUNTY_KEY,
             color=selected_indicator,
             hover_name='County',
-            color_continuous_scale="RdYlGn",
+            color_continuous_scale="RdYlGn_r",
             mapbox_style="white-bg",
             zoom=5.8,
             center=KENYA_CENTER,
@@ -318,34 +318,32 @@ with col2:
             labels={'County': 'County', selected_indicator: 'Score (%)'},
         )
 
-        # --- 3. ADD COUNTY BORDERS FOR ALL 47 COUNTIES ---
-        fig_map.update_traces(
-            marker_line={'width': 1, 'color': 'grey'},
-            selector=dict(type='choroplethmapbox')
-        )
+        # --- 3. GREY BORDERS ---
+        fig_map.update_traces(marker_line={'width': 1, 'color': 'grey'})
 
-        # --- 4. ADD A WHITE OUTLINE LAYER FOR MISSING COUNTIES ---
+        # --- 4. ADD WHITE OVERLAY FOR MISSING COUNTIES ---
         missing_counties = df_map_data[df_map_data[selected_indicator].isna()]['County'].tolist()
 
-        # Add a transparent layer for missing counties
-        for feature in geojson_data["features"]:
-            county_name = feature["properties"]["County_Name_Key"]
-            if county_name in missing_counties:
-                # Draw missing counties as white polygons with grey borders
+        if missing_counties:
+            missing_features = [
+                f for f in geojson_data["features"]
+                if f["properties"]["County_Name_Key"] in missing_counties
+            ]
+            if missing_features:
                 fig_map.add_trace(
                     go.Choroplethmapbox(
-                        geojson=feature,
-                        locations=[county_name],
-                        z=[0],
+                        geojson={"type": "FeatureCollection", "features": missing_features},
+                        locations=[f["properties"]["County_Name_Key"] for f in missing_features],
+                        z=[0] * len(missing_features),
                         colorscale=[[0, "white"], [1, "white"]],
                         showscale=False,
-                        marker_line= {'width':1, 'color': 'grey'},
+                        marker_line={'width': 1, 'color': 'grey'},
                         hoverinfo="none",
                         opacity=1
                     )
                 )
 
-        # --- 5. LAYOUT CLEANUP ---
+        # --- 5. CLEAN LAYOUT ---
         fig_map.update_layout(
             coloraxis_colorbar=dict(
                 title="Score (%)",
@@ -365,6 +363,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
