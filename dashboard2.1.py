@@ -115,7 +115,7 @@ def load_and_clean_data(file_path):
      #   }
         
     df['County'] = df['County'].str.strip() # Good practice: remove leading/trailing spaces
-    df['County'] = df['County'].replace(name_standardization_map, regex=False)
+    #df['County'] = df['County'].replace(name_standardization_map, regex=False)
         
         # This final clean-up is often necessary if the names are slightly different
     df['County'] = df['County'].str.replace('County', '').str.strip()
@@ -370,6 +370,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
