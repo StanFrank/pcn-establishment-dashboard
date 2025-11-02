@@ -320,8 +320,7 @@ with col2:
             zoom=5.0,
             center=KENYA_CENTER,
             opacity=0.8,
-            labels={'County': 'County', selected_indicator: 'Score (%)'},
-            missingcolor="white",
+            labels={'County': 'County', selected_indicator: 'Score (%)'},            
         )
 
         # --- 3. REFINEMENT & STYLING ---
@@ -361,6 +360,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
