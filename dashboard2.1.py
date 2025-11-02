@@ -306,45 +306,49 @@ with col2:
         # Fill NaN with 0 temporarily (so they render as the lowest value)
         df_map_data[selected_indicator] = df_map_data[selected_indicator].fillna(0)
 
-        fig_map = px.choropleth_mapbox(
+        fig_map = px.choropleth(
             df_map_data,
             geojson=geojson_data,
             locations='County',
             featureidkey=GEOJSON_COUNTY_KEY,
             color=selected_indicator,
             hover_name='County',
-            color_continuous_scale="RdYlGn_r",
-            mapbox_style="white-bg",
-            zoom=5.8,
-            center=KENYA_CENTER,
+            color_continuous_scale="RdYlGn",
+            #mapbox_style="white-bg",
+            #zoom=5.0,
+            #center=KENYA_CENTER,
             opacity=0.9,
             labels={'County': 'County', selected_indicator: 'Score (%)'},
         )
 
         # --- 3. REFINEMENT & STYLING ---
         fig_map.update_traces(
-            marker_line={'width': 1, 'color': 'grey'},
-            selector=dict(type='choroplethmapbox')
+            marker=dict(line=dict(color="black", width=0.3)),
+            hovertemplate="%{location}<br>%{z}<extra></extra>",
+            zmin=df_map_data[selected_indicator].min(),
+            zmax=df_map_data[selected_indicator].max(),
+            zauto= False,
         )
 
         fig_map.update_layout(
-            coloraxis_colorbar=dict(
-                title="Score (%)",
-                thicknessmode="pixels", thickness=15, len=0.7
+            geo=dict(
+                fitbounds="locations",
+                visible=False,
             ),
-            mapbox=dict(bearing=0, pitch=0),
-            margin={"r": 0, "t": 0, "l": 0, "b": 0},
+            coloraxis_colorbar=dict(title=selected_indicator),
+            paper_bgcolor="white",
+            plot_bgcolor="white",
+            coloraxis=dict(colorbar_tickformat=".0f", cmin=None, cmax=None, colorscale="Viridis", showscale=True),
         )
 
         # --- 4. Manually make missing data appear white ---
-        # Recolor counties with 0 (previously NaN) to white
-        for feature in geojson_data["features"]:
-            county_name = feature["properties"]["County_Name_Key"]
-            if county_name in df_map_data["County"].values:
-                val = df_map_data.loc[df_map_data["County"] == county_name, selected_indicator].iloc[0]
-                if val == 0:
-                    feature["properties"]["fill"] = "white"
-
+        fig.update_traces(marker=dict(line=dict(color="black", width=0.3), colorbar_tickformat=".0f"),
+                          selector=dict(type='choropleth'))
+        fig.update_layout(coloraxis_colorbar_title=selected_indicator, geo_bgcolor="white")
+        fig.update_coloraxes(colorbar_title=selected_indicator, showscale=True, cmin=None, cmax=None,
+                             colorbar_tickformat=".0f", colorbar_title_side="right",
+                             missingcolor="white")
+        fig.show()
         st.plotly_chart(fig_map, use_container_width=True)
 
 
@@ -355,6 +359,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
