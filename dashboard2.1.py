@@ -142,9 +142,7 @@ def load_and_clean_data(file_path):
     
 @st.cache_data
 def load_geodata(shp_path):
-    import geopandas as gpd
-    import json
-
+    
     try:
         gdf = gpd.read_file(shp_path)
         if gdf.crs != "EPSG:4326":
@@ -357,6 +355,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
