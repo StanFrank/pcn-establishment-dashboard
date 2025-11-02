@@ -330,8 +330,17 @@ with col2:
             marker_line_color="white",
             hovertemplate="<b>%{location}</b><br>Score: %{z:.1f}%<extra></extra>",
             marker=dict(opacity=0.85),
-        )
+        )        
 
+        # --- 🩶 Make missing counties appear white ---
+        # Replace NaN color values with white (no fill)
+        for trace in fig_map.data:
+            z = np.array(trace.z)
+            mask = np.isnan(z)
+            if mask.any():
+                trace.z = np.where(mask, None, z)  # hide missing data
+                trace.marker.colorscale = trace.marker.colorscale
+        
         fig_map.update_layout(
             margin={"r":0, "t":30, "l":0, "b": 0},
             coloraxis_colorbar=dict(
@@ -339,6 +348,7 @@ with col2:
                 tickformat=".0f",
                 title_side="right",
             ),
+            paper_bgcolor="white",
         )
         # --- 4. Manually make missing data appear white ---
         # --- Handle missing data properly before plotting ---
@@ -351,6 +361,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
