@@ -314,7 +314,7 @@ with col2:
 
         # --- 2. CREATE MAP ---
         # Fill NaN with 0 temporarily (so they render as the lowest value)
-        #df_map_data[selected_indicator] = df_map_data[selected_indicator].fillna(0)
+        df_map_data[selected_indicator] = df_map_data[selected_indicator].fillna(0)
 
         fig_map = px.choropleth_mapbox(
             df_map_data,
@@ -327,7 +327,7 @@ with col2:
             mapbox_style="white-bg",
             zoom=5.0,
             center=KENYA_CENTER,
-            opacity=1,
+            opacity=0.8,
             labels={'County': 'County', selected_indicator: 'Score (%)'},
         )
 
@@ -336,46 +336,62 @@ with col2:
             marker_line={'width': 1, 'color': 'grey'},
             selector=dict(type='choroplethmapbox')
         )
-        # Style the layout and color bar
-        fig_map.update_layout(
-                    margin={"r":0, "t":30, "l":0, "b":0},
-                    mapbox=dict(bearing=0, pitch=0),
-                    coloraxis_colorbar=dict(
-                        title=dict(
-                            text="Score (%)",
-                            side="top",
-                            font=dict(color="black", size=12)
-                        ),
-                        tickformat=".0f",
-                        tickfont=dict(color="black", size=11),
-                        x=0.97,
-                        xanchor="right",
-                        y=0.5,
-                        yanchor="middle",
-                        len=0.6,
-                        thickness=12,
-                        bgcolor="rgba(255,255,255,0.8)", # Slight background for clarity
-                        outlinecolor="rgba(0,0,0,0.2)",
-                        outlinewidth=1
-                    )
-        )
-        fig_map.add_annotation(
-                    text=f"County Scores: {selected_indicator}",
-                    xref="paper",
-                    yref="paper",
-                    x=0.5,     
-                    y=0.98, 
-                    showarrow=False,
-                    font=dict(size=14, color="black", family="Arial Black"),
-                    bgcolor="rgba(255,255,255,0.7)",
-                    bordercolor="black",
-                    borderwidth=1,
-                    borderpad=6,
-                )
-        
-        st.plotly_chart(fig_map, use_container_width=True)
-        
 
+        fig_map.update_layout(
+            coloraxis_colorbar=dict(
+                title="Score (%)",
+                thicknessmode="pixels", thickness=15, len=0.7
+            ),
+            mapbox=dict(bearing=0, pitch=0),
+            margin={"r": 0, "t": 0, "l": 0, "b": 0},
+        )
+        fig_map.update_layout(
+            margin={"r":0, "t":30, "l":0, "b":0},
+            coloraxis_colorbar=dict(
+                title=dict(
+                    text="Score (%)",
+                    side="top",
+                    font=dict(color="black", size=12)
+                ),
+                tickformat=".0f",
+                tickfont=dict(color="black", size=11),
+                x=0.97,
+                xanchor="right",
+                y=0.5,
+                yanchor="middle",
+                len=0.6,
+                thickness=12,
+                bgcolor="rgba(255,255,255,0.6)",
+                outlinecolor="rgba(0,0,0,0.2)",
+                outlinewidth=1
+            )
+        )
+
+        
+        fig_map.add_annotation(
+            text=f"{selected_indicator} by County",
+            xref="paper",
+            yref="paper",
+            x=0.5,        
+            y=0.98, 
+            showarrow=False,
+            font=dict(size=9, color="black", family="Arial Black"),
+            bgcolor="rgba(255,255,255,0.7)",
+            bordercolor="black",
+            borderwidth=1,
+            borderpad=6,
+)
+
+        # --- 4. Manually make missing data appear white ---
+        # Recolor counties with 0 (previously NaN) to white
+        for feature in geojson_data["features"]:
+            county_name = feature["properties"]["County_Name_Key"]
+            if county_name in df_map_data["County"].values:
+                val = df_map_data.loc[df_map_data["County"] == county_name, selected_indicator].iloc[0]
+                if val == 0:
+                    feature["properties"]["fill"] = "white"
+
+        st.plotly_chart(fig_map, use_container_width=True)
 
 st.markdown("""---""")
 
@@ -383,6 +399,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
