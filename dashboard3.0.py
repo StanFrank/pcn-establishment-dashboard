@@ -308,7 +308,7 @@ SUBCOUNTY_SHAPE = "ken_admbnda_adm2_iebc_20191031.shp"  # optional, only if you 
 GEOJSON_COUNTY_KEY = "properties.County_Name_Key"
 
 # load CSVs
-df_county_raw = load_and_clean_county_csv(COUNTY_CSV)
+df_county_raw, pillar_dfs = load_and_clean_county_csv(COUNTY_CSV)
 pcn_lvl_df = load_and_clean_pcn_csv(PCN_CSV)
 
 
@@ -330,7 +330,7 @@ st.markdown("---")
 
 # sidebar controls for county-level (keeps your original behavior)
 st.sidebar.header("Select Performance Metrics")
-pillar_keys = list(group_columns_by_pillar(df_county_raw, PILLAR_KEYWORDS).keys())
+pillar_keys = list(pillar_dfs.keys())
 
 if not pillar_keys:
     st.warning("No county-level pillars detected. Check column names and PILLAR_KEYWORDS.")
@@ -560,6 +560,7 @@ except Exception:
     st.write("Select PCN Pillar/Indicator/County to view PCN table.")
 
 # End of script
+
 
 
 
