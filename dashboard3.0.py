@@ -325,6 +325,11 @@ except Exception:
 # ============================
 # 5. STREAMLIT UI: County-Level (your original working section)
 # ============================
+st.set_page_config(layout="wide", page_title="Kenya PCN Establishment Dashboard")
+st.markdown(
+    "<h1 style='text-align: center;'>Kenya PCN Establishment Dashboard</h1>",
+    unsafe_allow_html=True
+)
 st.markdown("<h2 style='color:#1E90FF'>County-Level PCN Establishment Analysis</h2>", unsafe_allow_html=True)
 st.markdown("---")
 
@@ -560,6 +565,7 @@ except Exception:
     st.write("Select PCN Pillar/Indicator/County to view PCN table.")
 
 # End of script
+
 
 
 
