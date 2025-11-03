@@ -15,7 +15,7 @@ import json
 
 # COUNTY-level keywords (kept as you had)
 PILLAR_KEYWORDS = {
-    '1. Governance': [
+    'Governance': [
         'Proportion of functional PHC advisory Committees in Place',
         'Proportion of PCNs Established',
         'Proportion of PCNs Gazetted',
@@ -29,53 +29,53 @@ PILLAR_KEYWORDS = {
         'Governance Score',
         'Governance Weighted Score'
     ],
-    '2. Human Resources for Health (HRH)': [
+    'Human Resources for Health (HRH)': [
         'Does the County have a mechanism to enhance health workers skills',
         'HRH Score',
         'HRH Weighted Score'
     ],
-    '3. Health Product Technologies (HPT)': [
+    'Health Product Technologies (HPT)': [
         'Proportion of county health budget allocated to drugs and supplies',
         'Proportion of county HPT budget allocated to levels 2&3 :',
         'HPT Score',
         'HPT Weighted Score'
     ],
-    '4. Service Delivery Systems': [
+    'Service Delivery Systems': [
         'PCNs with functional refferal mechanisms',
         'Service Delivery Systems Score',
         'Service Delivery Systems Weighted Score'
     ],
-    '5. Healthcare Financing': [
+    'Healthcare Financing': [
         'Proportion of households registered on SHA within the County',
         'Healthcare Financing Score',
         'Healthcare Financing Weighted Score'
     ],
-    '6. HMIS/Digital Health': [
+    'HMIS/Digital Health': [
         'Proportion of SMART PCNs in the County',
         'HMIS Score',
         'HMIS Weighted Score'
     ],
-    '7. Quality of Care (QoC) - Management Systems': [
+    'Quality of Care (QoC) - Management Systems': [
         'Mechanism to Coordinate Quality Improvement Score',
         'Mechanism for Implementation of Support Supervision in Health Facilities Score',
         'Presence of an Infection Prevention Control (IPC) committee Score',
         'QoC Management Systems Score',
         'QoC Management Systems Weighted Score'
     ],
-    '8. Multisectoral Partnerships and Coordination': [
+    'Multisectoral Partnerships and Coordination': [
         'Number of bi-annual multisectoral stakeholder forums Score',
         'Proportion of MOUs and partnership agreements aligned to PHC signed',
         'Research studies done on PCN implementation Score',
         'Multisectoral Partnerships and Coordination Score',
         'Multisectoral Partnerships and Coordination Weighted Score'
     ],
-    '9. Innovations and Learning': [
+    'Innovations and Learning': [
         'Number of knowledge management and learning forums conducted Score:',
         'No. of research studies done on PCN implementation Score',
         'Innovations and Learning Score',
         'Innovations and Learning Weighted Score'
     ],
-    '10. Overall Score': [
+    'Overall Score': [
         'Total County Score (Total Weighted Score)',
     ]
 }
@@ -83,20 +83,20 @@ PILLAR_KEYWORDS = {
 # PCN-level pillar keywords (based on the long header you shared).
 # Use substrings from the header so group_columns_by_pillar will catch the right columns.
 PCN_PILLAR_KEYWORDS = {
-    '1. Governance': [
+    'Governance': [
         'Proportion of functional Community Health Committees',
         'Proportion of Health facilities that have received supportive supervision',
         'Functional PCN Management committee',
         'Functionallity of MDTs',
         'Governance Score', 'Governance Weighted Score'
     ],
-    '2. Population Health Needs': [
+    'Population Health Needs': [
         'Number of population profiling assessments conducted',
         'Proportion of population health needs that have been addressed',
         'Number of wellness activities conducted',
         'Population Needs Score', 'Population Needs Weighted Score'
     ],
-    '3. Capacity Readiness': [
+    'Capacity Readiness': [
         'Proportion of facilities in the PCN that had all 22 tracer pharmaceuticals',
         'Proportion of facilities in the PCN that have all 23 tracer non-pharmaceuticals',
         'Availability of the whole blood and blood components',
@@ -107,7 +107,7 @@ PCN_PILLAR_KEYWORDS = {
         'Proportion of Facilities within the PCN with all basic tracer equipment',
         'Capacity Readiness Score', 'Capacity Readiness Weighted Score'
     ],
-    '4. Healthcare Financing': [
+    'Healthcare Financing': [
         'Proportion of clients accessing Health Services using SHIF',
         'Proportion of the target Health Facilities empanneled on SHA',
         'Proportion of Health Facilities in the PCN making SHA claims',
@@ -117,7 +117,7 @@ PCN_PILLAR_KEYWORDS = {
         'Total amount of user fees waived',
         'Healthcare Financing Score', 'Healthcare Financing Weighted Score'
     ],
-    '5. Health Infrastructure': [
+    'Health Infrastructure': [
         'Proportion of health facilities with accessible road network',
         'Proportion of facilities with the appropriate WASH facilities',
         'Proportion of facilities with the tracer list of infrastructure',
@@ -125,7 +125,7 @@ PCN_PILLAR_KEYWORDS = {
         'PCN access to adequate ambulance services',
         'Ambulance request Score', 'Health infrastructure Score', 'Health infrastructure Weighted Score'
     ],
-    '6. HMIS/Digital Health': [
+    'HMIS/Digital Health': [
         'Proprtion of facilties with reliable internet connection',
         'Proportion of facilities in the PCN with the key OPD reporting tools',
         'No of performance and data quality review meetings held quarterly',
@@ -134,7 +134,7 @@ PCN_PILLAR_KEYWORDS = {
         'Proportion of CHUs within the PCN reporting monthly',
         'HMIS Score', 'HMIS Weighted Score'
     ],
-    '7. Human Resources for Health (HRH)': [
+    'Human Resources for Health (HRH)': [
         'Core HRH density', 'Doctor to population ratio', 'Clinical officer to  population ratio',
         'Nurse to population ratio', 'CHA/CHO  to population ratio',
         'Proportion of CHPs trained on basic modules',
@@ -143,43 +143,43 @@ PCN_PILLAR_KEYWORDS = {
         'Proportion of health workers who have undergone a skills/ competency buliding course',
         'HRH Score', 'HRH Weighted Score'
     ],
-    '8. Service Delivery': [
+    'Service Delivery': [
         'Number of outreaches conducted by the MDT',
         'Number of in-reaches conducted within the PCN',
         'Service Delivery Score', 'Service Delivery Weighted Score'
     ],
-    '9. Quality of Care - Management Systems': [
+    'Quality of Care - Management Systems': [
         'Proportion of hospitals with functional facility quality improvement teams',
         'Proportion of spokes with functional facility work improvement teams',
         'Average availability of selected IPC items',
         'QoC Management Systems Score', 'QoC Management Systems Weighted Score'
     ],
-    '10. Quality of Care - PHC Core Systems': [
+    'Quality of Care - PHC Core Systems': [
         'Adherence to clinical guidelines', 'Provider Availability (absenteeism)',
         'QoC PHC Core Systems Score'
     ],
-    '11. Quality of Care - Outcomes': [
+    'Quality of Care - Outcomes': [
         'Proportion of facilities conducting MPDSR',
         'Fresh Stillbirth rate', 'Number of maternal deaths', 'Proportion of maternal deaths Audited',
         'Number of neonatal deaths', 'Proportion of neonatal deaths audited',
         'TB Treatment Success Rate',
         'QoC Outcomes Score'
     ],
-    '12. Social Accountability': [
+    'Social Accountability': [
         'Proportion of facilities which have conducted a client satisfaction survey',
         'No. of MDT engagements with the community',
         'No. of health facilities with functional GRMs',
         'Social Accountability Score'
     ],
-    '13. Multisectoral Partnerships and Coordination': [
+    'Multisectoral Partnerships and Coordination': [
         'Proportion of multi-sectoral actions implemented',
         'Number of inter- PCN peer to peer learning sessions held',
         'Multisectoral Partnerships and Coordination Score'
     ],
-    '14. Innovations and Learning': [
+    'Innovations and Learning': [
         'Number of PHC related innovations', 'Innovations and Learning Score', 'Innovations and Learning Weighted Score'
     ],
-    '15. Overall PCN Score': [
+    'Overall PCN Score': [
         'Total PCN Score', 'Total PCN Score (Total Weighted Score)'
     ]
 }
@@ -564,6 +564,7 @@ except Exception:
     st.write("Select PCN Pillar/Indicator/County to view PCN table.")
 
 # End of script
+
 
 
 
