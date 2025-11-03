@@ -323,17 +323,17 @@ st.markdown("<h2 style='color:#1E90FF'>County-Level PCN Establishment Analysis</
 st.markdown("---")
 
 # sidebar controls for county-level (keeps your original behavior)
-st.sidebar.header("Select Performance Metrics (County Level)")
+st.sidebar.header("Select Performance Metrics")
 pillar_keys = list(group_columns_by_pillar(df_county_raw, PILLAR_KEYWORDS).keys())
 
 if not pillar_keys:
-    st.sidebar.error("No county-level pillars detected. Check column names and PILLAR_KEYWORDS.")
+    st.warning("No county-level pillars detected. Check column names and PILLAR_KEYWORDS.")
 else:
-    selected_pillar = st.sidebar.selectbox("1. Select Pillar:", options=pillar_keys, index=0)
+    selected_pillar = st.selectbox("1. Select Pillar:", options=pillar_keys, index=0)
     pillar_dfs = group_columns_by_pillar(df_county_raw, PILLAR_KEYWORDS)
     pillar_df = pillar_dfs[selected_pillar]
     indicator_options = [col for col in pillar_df.columns if col != 'County']
-    selected_indicator = st.sidebar.selectbox("2. Select Indicator/Metric:", options=indicator_options)
+    selected_indicator = st.selectbox("2. Select Indicator/Metric:", options=indicator_options)
 
     # layout: bar + map
     col1, col2 = st.columns([1, 1])
@@ -367,7 +367,7 @@ else:
             df_map_data = df_all_counties.merge(df_score_data, on='County', how='left')
 
             # Convert to numeric, preserve NaN for missing; do NOT fill with 0
-            df_map_data[selected_indicator] = pd.to_numeric(df_map_data[selected_indicator], errors='coerce')
+            df_map_data[selected_indicator] = df_map_data[selected_indicator].fillna(0)
 
             fig_map = px.choropleth_mapbox(
                 df_map_data,
@@ -406,7 +406,14 @@ else:
                 font=dict(size=12, color="black", family="Arial Black"),
                 bgcolor="rgba(255,255,255,0.7)", bordercolor="black", borderwidth=1, borderpad=6
             )
-
+        #Manually make missing data appear white ---
+        # Recolor counties with 0 (previously NaN) to white
+            for feature in geojson_data["features"]:
+                county_name = feature["properties"]["County_Name_Key"]
+                if county_name in df_map_data["County"].values:
+                    val = df_map_data.loc[df_map_data["County"] == county_name, selected_indicator].iloc[0]
+                    if val == 0:
+                        feature["properties"]["fill"] = "white"
             st.plotly_chart(fig_map, use_container_width=True)
 
 
@@ -547,4 +554,5 @@ except Exception:
     st.write("Select PCN Pillar/Indicator/County to view PCN table.")
 
 # End of script
+
 
