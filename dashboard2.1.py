@@ -13,57 +13,67 @@ import json
 # Define the data structure
 PILLAR_KEYWORDS = {
     '1. Governance': [
-        'PHC Advisory Committees', 'PCNs Established ', 'PCNs Gazetted',
-        'Functional PCN Management Committee', 'Hospital Management Boards Appointed/Gazetted',
-        'Health Facility Management Committee Appointed/Gazetted',
-        'Availability of Functional PHC TWG',
-        'Operational Budget for the PCN MDT activities',
-        'Perfomance Review Score', 'CHMT Support Supervision Score',
-        'Governance Score', 'Governance Weighted Score'
+        'Proportion of functional PHC advisory Committees in Place',
+        'Proportion of PCNs Established',
+        'Proportion of PCNs Gazetted',
+        'Availability of a Functional PCN management committee',
+        'Proportion of Hospital management boards appointed/gazetted:',
+        'Proportion of Health Facilities (level 2&3) with Health Facility Management Committee Appointed/Gazetted',
+        'Availability of a functional PHC TWG Score',
+        'Proportion of PCNs with an operational budget for the MDT activities:',
+        'Perfomance Review Score',
+        'CHMT Support Supervision Score',
+        'Governance Score',
+        'Governance Weighted Score'
     ],
-    '2. Human Resources for Health (HRH)': [
-        'County Mechanism to Enhance Health Workers Skills',
-        'HRH Score', 'HRH Weighted Score'
+    '2. Human Resources for Health (HRH)': [        
+        'Does the County have a mechanism to enhance health workers skills',
+        'HRH Score',
+        'HRH Weighted Score'
     ],
-    '3. Health Product Technologies (HPT)': [
-        'County Health Budget Allocated to Drugs & Supplies',
-        'County HPT Budget Allocated to Levels 2&3',
-        'HPT Score', 'HPT Weighted Score'
+    '3. Health Product Technologies (HPT)': [        
+        'Proportion of county health budget allocated to drugs and supplies',
+        'Proportion of county HPT budget allocated to levels 2&3 :',
+        'HPT Score',
+        'HPT Weighted Score'
     ],
     '4. Service Delivery Systems': [
-        'PCNs With Functional Referral Mechanisms',
-        'Service Delivery Systems Score', 'Service Delivery Systems Weighted Score'
+        'PCNs with functional refferal mechanisms',
+        'Service Delivery Systems Score',
+        'Service Delivery Systems Weighted Score'
     ],
     '5. Healthcare Financing': [
-        'Proportion Of Households Registered on SHA Within the County',
-        'Healthcare Financing Score', 'Healthcare Financing Weighted Score'
+        'Proportion of households registered on SHA within the County',
+        'Healthcare Financing Score',
+        'Healthcare Financing Weighted Score'
     ],
     '6. HMIS/Digital Health': [
-        'Proportion of Smart PCNs in the County',
-        'HMIS Score', 'HMIS Weighted Score'
+        'Proportion of SMART PCNs in the County',
+        'HMIS Score',
+        'HMIS Weighted Score'
     ],
     '7. Quality of Care (QoC) - Management Systems': [
         'Mechanism to Coordinate Quality Improvement Score',
         'Mechanism for Implementation of Support Supervision in Health Facilities Score',
         'Presence of an Infection Prevention Control (IPC) committee Score',
-        'QoC Management Systems Score', 'QoC Management Systems Weighted Score'
+        'QoC Management Systems Score',
+        'QoC Management Systems Weighted Score'
     ],
     '8. Multisectoral Partnerships and Coordination': [
-        'Bi-Annual Multisectoral Stakeholder Forums Score',
+        'Number of bi-annual multisectoral stakeholder forums Score',
         'Proportion of MOUs and partnership agreements aligned to PHC signed',
         'Research studies done on PCN implementation Score',
         'Multisectoral Partnerships and Coordination Score',
         'Multisectoral Partnerships and Coordination Weighted Score'
     ],
     '9. Innovations and Learning': [
-        'Knowledge Management & Learning Forums Conducted Score',
-        'Research Studies Done on PCN Implementation Score',
+        'Number of knowledge management and learning forums conducted Score:',
+        'No. of research studies done on PCN implementation Score',
         'Innovations and Learning Score',
         'Innovations and Learning Weighted Score'
     ],
     '10. Overall Score': [
-        'Total County Score (Total Weighted Score)',
-
+        'Total County Score (Total Weighted Score)'
     ]
 }
 
@@ -389,6 +399,7 @@ st.header("County Data Table")
 # Use the filtered pillar_df for the table
 
 st.dataframe(pillar_df.sort_values(by='County'), use_container_width=True)
+
 
 
 
