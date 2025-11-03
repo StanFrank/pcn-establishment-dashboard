@@ -78,7 +78,6 @@ PILLAR_KEYWORDS_COUNTY = {
 }
 
 # --- B. PCN (Sub-County) LEVEL CONFIG ---
-# Updated with the exhaustive list of columns provided by the user.
 PILLAR_KEYWORDS_PCN = {
     '1. Governance': [
         'Proportion of functional Community Health Committees in the PCN',
@@ -208,7 +207,7 @@ COUNTY_DATA_PATH = "county_lvl_data.csv"
 GEOJSON_COUNTY_KEY = "properties.County_Name_Key"
 
 # PLACEHOLDERS for PCN Level
-PCN_SHAPEFILE_PATH = "ken_admbnda_adm2_iebc_20191031.shp" # Sub-county shapefile placeholder
+PCN_SHAPEFILE_PATH = "ken_admbnda_adm2.shp" # Sub-county shapefile placeholder
 PCN_DATA_PATH = "pcn_lvl_data.csv"
 GEOJSON_PCN_KEY = "properties.PCN_Name_Key" # Key name in the PCN GeoJSON features
 
@@ -303,7 +302,10 @@ def load_and_clean_county_data(file_path):
 @st.cache_data
 def load_and_clean_pcn_data(file_path):
     # CRITICAL ASSUMPTION: The PCN file has 'County' and 'Subcounty' columns.
-    df_raw = pd.read_csv(file_path, encoding='ISO-8859-1')
+    try:
+        df_raw = pd.read_csv(file_path, encoding='ISO-8859-1')
+    except Exception:
+        return pd.DataFrame(), {}
     
     # Ensure the dataframe has enough rows (not just headers)
     if len(df_raw) < 2:
@@ -324,6 +326,7 @@ def load_and_clean_pcn_data(file_path):
 @st.cache_data
 def load_geodata(shp_path, key_column):
     try:
+        # Note: geopandas requires all related files (.shp, .shx, .dbf, etc.) to be present
         gdf = gpd.read_file(shp_path)
         if gdf.crs != "EPSG:4326":
             gdf = gdf.to_crs(epsg=4326)
@@ -345,12 +348,17 @@ def load_geodata(shp_path, key_column):
         return geojson_data
     
     except Exception as e:
-        st.error(f"Error loading geospatial data from {shp_path}: {e}")
+        # Print a specific error in the console for debugging the file issue
+        print(f"!!! Error loading geospatial data from {shp_path}. Plotting will be disabled. Error: {e}")
         return None
 
 # --- PLOTLY CHOROPLETH GENERATOR ---
 def create_choropleth_map(df_map_data, geojson_data, geojson_key, selected_indicator, center_point, title_text):
     
+    # If geojson data is None, return None immediately to prevent plotting errors
+    if geojson_data is None:
+        return None
+
     fig_map = px.choropleth_mapbox(
         df_map_data,
         geojson=geojson_data,
@@ -408,7 +416,8 @@ geojson_data_county = load_geodata(COUNTY_SHAPEFILE_PATH, 'ADM1_EN') # ADM1_EN i
 
 # --- PCN DATA LOADING ---
 df_pcn_raw, pillar_dfs_pcn = load_and_clean_pcn_data(PCN_DATA_PATH)
-geojson_data_pcn = load_geodata(PCN_SHAPEFILE_PATH, 'ADM2_EN') # ADM2_EN is assumed sub-county key
+# Assuming 'ADM2_EN' in the sub-county shapefile holds the name key
+geojson_data_pcn = load_geodata(PCN_SHAPEFILE_PATH, 'ADM2_EN') 
 
 # =======================================================
 # --- 4. STREAMLIT LAYOUT AND INTERACTIVITY ---
@@ -418,7 +427,7 @@ st.set_page_config(layout="wide", page_title="Kenya PCN Establishment Dashboard"
 st.markdown("<h1 style='text-align: center;'>Kenya PCN Establishment Dashboard</h1>", unsafe_allow_html=True)
 
 # --- 4A. COUNTY LEVEL ANALYSIS ---
-st.markdown("<h1 style='text-align: left; color: #1E90FF;'>1. County-Level PCN Establishment Analysis</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: left; color: #1E90FF;'>County-Level PCN Establishment Analysis</h1>", unsafe_allow_html=True)
 st.markdown("""---""")
 
 # Sidebar for Filter Selection (County Level)
@@ -477,7 +486,8 @@ if selected_indicator_county:
     with col2_c:
         st.subheader("County Geographic Map")
         if geojson_data_county is None:
-            st.error("County Map visualization cannot load: Geospatial data is missing.")
+            st.error("County Map visualization cannot load: Geospatial data is missing or failed to load.")
+            fig_map_c = None
         else:
             df_score_data_c = pillar_df_county[['County', selected_indicator_county]].copy()
             
@@ -495,6 +505,9 @@ if selected_indicator_county:
                 KENYA_CENTER, 
                 f"County Scores: {selected_indicator_county}"
             )
+        
+        # CRITICAL FIX: Only update and chart if the map figure was successfully created
+        if fig_map_c is not None:
             fig_map_c.update_layout(zoom=5.2) # Default zoom for country map
             st.plotly_chart(fig_map_c, use_container_width=True)
 
@@ -508,7 +521,7 @@ if selected_indicator_county:
 # --- 4B. PCN LEVEL ANALYSIS (Subcounty Drill Down) ---
 # =======================================================
 
-st.markdown("<h1 style='text-align: left; color: #FFA500;'>2. PCN Level Analysis (Subcounty)</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: left; color: #FFA500;'>PCN Level Analysis (Subcounty)</h1>", unsafe_allow_html=True)
 st.markdown("""---""")
 
 # --- PCN HORIZONTAL FILTER BAR ---
@@ -516,12 +529,7 @@ pillar_keys_pcn = list(pillar_dfs_pcn.keys())
 
 if not pillar_keys_pcn:
     st.warning("PCN data could not be loaded. Please ensure 'pcn_lvl_data.csv' exists and has 'County' and 'Subcounty' columns.")
-    # Exit here if PCN data is truly unavailable
-    # st.stop() # Commenting out st.stop() to allow the county section to still run
-
-# Proceed only if PCN data was successfully loaded
-if pillar_keys_pcn:
-    
+else:
     # Get list of all available counties in the PCN dataset
     all_pcn_counties = sorted(df_pcn_raw['County'].unique().tolist())
     
@@ -588,13 +596,11 @@ if pillar_keys_pcn:
     with col2_pcn:
         st.subheader(f"Geographic Map: {selected_county_pcn}")
         if geojson_data_pcn is None:
-            st.error("PCN Map visualization cannot load. Check if 'ken_admbnda_adm2.shp' and components are uploaded.")
+            st.error("PCN Map visualization cannot load. Check if 'ken_admbnda_adm2.shp' and all components are uploaded.")
+            fig_map_pcn = None
         else:
             # Prepare map data, merging score data onto all subcounties
             df_score_data_pcn = df_pcn_viz[['Subcounty', selected_indicator_pcn]].copy()
-            
-            # Since the sub-county GeoJSON may contain all sub-counties in Kenya, 
-            # we rely on Plotly to only color the ones present in df_score_data_pcn
             
             fig_map_pcn = create_choropleth_map(
                 df_score_data_pcn.rename(columns={'Subcounty': 'PCN_Name_Key'}),
@@ -604,11 +610,14 @@ if pillar_keys_pcn:
                 KENYA_CENTER, 
                 f"PCN Scores: {selected_indicator_pcn} in {selected_county_pcn}"
             )
-            # Zoom closer to show subcounties within the selected county region
-            fig_map_pcn.update_layout(zoom=6.5) 
+            
+        # CRITICAL FIX: Only update and chart if the map figure was successfully created
+        if fig_map_pcn is not None:
+            fig_map_pcn.update_layout(zoom=6.5) # Zoom closer to show subcounties
             st.plotly_chart(fig_map_pcn, use_container_width=True)
 
     st.markdown("""---""")
     st.header(f"PCN Data Table for {selected_county_pcn}")
-
     st.dataframe(df_pcn_viz.sort_values(by='Subcounty'), use_container_width=True)
+
+
