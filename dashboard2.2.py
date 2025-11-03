@@ -366,7 +366,7 @@ def create_choropleth_map(df_map_data, geojson_data, geojson_key, selected_indic
         featureidkey=geojson_key,
         color=selected_indicator,
         hover_name=df_map_data.columns[0],
-        color_continuous_scale="RdYlGn_r", 
+        color_continuous_scale="RdYlGn", 
         mapbox_style="white-bg",
         zoom=5.0, # Initial zoom set here
         center=center_point,
@@ -382,16 +382,32 @@ def create_choropleth_map(df_map_data, geojson_data, geojson_key, selected_indic
     )
 
     fig_map.update_layout(
+            coloraxis_colorbar=dict(
+                title="Score (%)",
+                thicknessmode="pixels", thickness=15, len=0.7
+            ),
+            mapbox=dict(bearing=0, pitch=0),
+            margin={"r": 0, "t": 0, "l": 0, "b": 0},
+    )
+    fig_map.update_layout(
         margin={"r":0, "t":30, "l":0, "b":0},
-        mapbox=dict(bearing=0, pitch=0),
+        #mapbox=dict(bearing=0, pitch=0),
         coloraxis_colorbar=dict(
-            title=dict(text="Score (%)", side="top", font=dict(color="black", size=12)),
+            title=dict(text="Score (%)", 
+                       side="top", 
+                       font=dict(color="black", size=12)
+            ),
             tickformat=".0f",
             tickfont=dict(color="black", size=11),
-            x=0.97, xanchor="right", y=0.5, yanchor="middle",
-            len=0.6, thickness=12,
+            x=0.97, 
+            xanchor="right", 
+            y=0.5, 
+            yanchor="middle",
+            len=0.6, 
+            thickness=12,
             bgcolor="rgba(255,255,255,0.8)",
-            outlinecolor="rgba(0,0,0,0.2)", outlinewidth=1
+            outlinecolor="rgba(0,0,0,0.2)", 
+            outlinewidth=1
         )
     )
 
@@ -621,6 +637,7 @@ else:
     st.markdown("""---""")
     st.header(f"PCN Data Table for {selected_county_pcn}")
     st.dataframe(df_pcn_viz.sort_values(by='Subcounty'), use_container_width=True)
+
 
 
 
