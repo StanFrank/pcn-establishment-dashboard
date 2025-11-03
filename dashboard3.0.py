@@ -329,7 +329,7 @@ st.markdown("<h2 style='color:#1E90FF'>County-Level PCN Establishment Analysis</
 st.markdown("---")
 
 # sidebar controls for county-level (keeps your original behavior)
-st.sidebar.header("Select Performance Metrics")
+st.markdown("Select Performance Metric.", unsafe_allow_html=True)
 pillar_keys = list(pillar_dfs.keys())
 
 if not pillar_keys:
@@ -560,6 +560,7 @@ except Exception:
     st.write("Select PCN Pillar/Indicator/County to view PCN table.")
 
 # End of script
+
 
 
 
