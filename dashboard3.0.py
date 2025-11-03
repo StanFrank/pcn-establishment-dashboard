@@ -299,7 +299,7 @@ def load_and_clean_pcn_csv(path):
 COUNTY_CSV = "county_lvl_data.csv"
 PCN_CSV = "pcn_lvl_data.csv"
 COUNTY_SHAPE = "ken_admbnda_adm1_iebc_20191031.shp"  # your shapefile for counties
-SUBCOUNTY_SHAPE = "kenya_subcounties.shp"  # optional, only if you have subcounty boundaries
+SUBCOUNTY_SHAPE = "ken_admbnda_adm2_iebc_20191031.shp"  # optional, only if you have subcounty boundaries
 
 # load CSVs
 df_county_raw = load_and_clean_county_csv(COUNTY_CSV)
@@ -547,3 +547,4 @@ except Exception:
     st.write("Select PCN Pillar/Indicator/County to view PCN table.")
 
 # End of script
+
