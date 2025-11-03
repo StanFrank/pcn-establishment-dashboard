@@ -10,7 +10,6 @@ import json
 # -------------------------
 # 1. CONFIG (kept from your final script)
 # -------------------------
-st.set_page_config(layout="wide", page_title="Kenya PCN Establishment Dashboard")
 
 # --- 1. CONFIGURATION AND DATA STRUCTURES ---
 
@@ -327,7 +326,7 @@ except Exception:
 # ============================
 st.set_page_config(layout="wide", page_title="Kenya PCN Establishment Dashboard")
 st.markdown(
-    "<h1 style='text-align: center;'>Kenya PCN Establishment Dashboard</h1>",
+    "<h1 style='text-align: center; font-size: 48px;'>Kenya PCN Establishment Dashboard</h1>",
     unsafe_allow_html=True
 )
 st.markdown("<h2 style='color:#1E90FF'>County-Level PCN Establishment Analysis</h2>", unsafe_allow_html=True)
@@ -565,6 +564,7 @@ except Exception:
     st.write("Select PCN Pillar/Indicator/County to view PCN table.")
 
 # End of script
+
 
 
 
