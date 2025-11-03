@@ -208,7 +208,7 @@ COUNTY_DATA_PATH = "county_lvl_data.csv"
 GEOJSON_COUNTY_KEY = "properties.County_Name_Key"
 
 # PLACEHOLDERS for PCN Level
-PCN_SHAPEFILE_PATH = "ken_admbnda_adm2.shp" # Sub-county shapefile placeholder
+PCN_SHAPEFILE_PATH = "ken_admbnda_adm2_iebc_20191031.shp" # Sub-county shapefile placeholder
 PCN_DATA_PATH = "pcn_lvl_data.csv"
 GEOJSON_PCN_KEY = "properties.PCN_Name_Key" # Key name in the PCN GeoJSON features
 
@@ -610,4 +610,5 @@ if pillar_keys_pcn:
 
     st.markdown("""---""")
     st.header(f"PCN Data Table for {selected_county_pcn}")
+
     st.dataframe(df_pcn_viz.sort_values(by='Subcounty'), use_container_width=True)
