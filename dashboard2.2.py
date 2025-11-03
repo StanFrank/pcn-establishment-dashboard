@@ -368,7 +368,7 @@ def create_choropleth_map(df_map_data, geojson_data, geojson_key, selected_indic
         hover_name=df_map_data.columns[0],
         color_continuous_scale="RdYlGn_r", 
         mapbox_style="white-bg",
-        zoom=5.0,
+        zoom=5.0, # Initial zoom set here
         center=center_point,
         opacity=1, 
         labels={df_map_data.columns[0]: 'Area Name', selected_indicator: 'Score (%)'},
@@ -508,7 +508,8 @@ if selected_indicator_county:
         
         # CRITICAL FIX: Only update and chart if the map figure was successfully created
         if fig_map_c is not None:
-            fig_map_c.update_layout(zoom=5.2) # Default zoom for country map
+            # FIX: Use mapbox_zoom instead of the direct, incorrect 'zoom' parameter
+            fig_map_c.update_layout(mapbox_zoom=5.2) # Default zoom for country map
             st.plotly_chart(fig_map_c, use_container_width=True)
 
     st.markdown("""---""")
@@ -613,11 +614,14 @@ else:
             
         # CRITICAL FIX: Only update and chart if the map figure was successfully created
         if fig_map_pcn is not None:
-            fig_map_pcn.update_layout(zoom=6.5) # Zoom closer to show subcounties
+            # FIX: Use mapbox_zoom instead of the direct, incorrect 'zoom' parameter
+            fig_map_pcn.update_layout(mapbox_zoom=6.5) # Zoom closer to show subcounties
             st.plotly_chart(fig_map_pcn, use_container_width=True)
-
+            
     st.markdown("""---""")
     st.header(f"PCN Data Table for {selected_county_pcn}")
     st.dataframe(df_pcn_viz.sort_values(by='Subcounty'), use_container_width=True)
+
+
 
 
