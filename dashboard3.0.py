@@ -451,7 +451,7 @@ else:
         county_options_pcn = sorted(pcn_lvl_df['County'].dropna().unique())
         selected_county_pcn = st.selectbox("County (PCN data)", options=county_options_pcn)
     with filter_col4:
-        subcounty_list = sorted(pcn_lvl_df[pcn_lvl_df['County'] == selected_county_pcn]['Subcounty'].dropna().unique())
+        subcounty_list = sorted(pcn_lvl_df[pcn_lvl_df['County'] == selected_county_pcn]['Sub county'].dropna().unique())
         # allow "All" option
         subcounty_list = ["All"] + subcounty_list
         selected_subcounty_pcn = st.selectbox("Subcounty / PCN", options=subcounty_list)
@@ -562,6 +562,7 @@ except Exception:
     st.write("Select PCN Pillar/Indicator/County to view PCN table.")
 
 # End of script
+
 
 
 
