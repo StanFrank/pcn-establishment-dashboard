@@ -274,8 +274,12 @@ def load_and_clean_county_csv(path):
     for col in score_cols:
         df[col] = pd.to_numeric(df[col], errors='coerce')
     df['County'] = df['County'].apply(standardize_name)
-    # keep rows even if many NaNs — we want all counties preserved
-    return df
+   # Filtering (to prevent plotting zero-data counties)
+    df_filtered = df.dropna(subset=score_cols, how='all').copy()
+    df_county_clean = df_filtered.fillna(0).copy()
+    
+    pillar_dfs = group_columns_by_pillar(df_county_clean, PILLAR_KEYWORDS)
+    return df_county_clean, pillar_dfs
 
 @st.cache_data
 def load_and_clean_pcn_csv(path):
@@ -300,14 +304,16 @@ COUNTY_CSV = "county_lvl_data.csv"
 PCN_CSV = "pcn_lvl_data.csv"
 COUNTY_SHAPE = "ken_admbnda_adm1_iebc_20191031.shp"  # your shapefile for counties
 SUBCOUNTY_SHAPE = "ken_admbnda_adm2_iebc_20191031.shp"  # optional, only if you have subcounty boundaries
+# load county geojson
+GEOJSON_COUNTY_KEY = "properties.County_Name_Key"
 
 # load CSVs
 df_county_raw = load_and_clean_county_csv(COUNTY_CSV)
 pcn_lvl_df = load_and_clean_pcn_csv(PCN_CSV)
 
-# load county geojson
+
 geojson_data = load_geodata(COUNTY_SHAPE)
-GEOJSON_COUNTY_KEY = "properties.County_Name_Key"
+
 
 # load subcounty geojson if available (optional)
 subcounty_geojson = None
@@ -554,5 +560,6 @@ except Exception:
     st.write("Select PCN Pillar/Indicator/County to view PCN table.")
 
 # End of script
+
 
 
