@@ -286,7 +286,7 @@ def load_and_clean_pcn_csv(path):
     if 'County' in df.columns:
         df['County'] = df['County'].apply(standardize_name)
     if 'Subcounty' in df.columns:
-        df['Subcounty'] = df['Subcounty'].apply(standardize_name)
+        df['Subcounty'] = df['Sub county'].apply(standardize_name)
     # coerce numeric columns where possible
     for col in df.columns:
         if col not in ['County', 'Subcounty', 'Pillar', 'Indicator']:
@@ -562,6 +562,7 @@ except Exception:
     st.write("Select PCN Pillar/Indicator/County to view PCN table.")
 
 # End of script
+
 
 
 
