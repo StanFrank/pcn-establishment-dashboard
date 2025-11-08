@@ -499,7 +499,7 @@ else:
                     title=f"{selected_indicator_pcn} in {selected_subcounty_pcn} Subcounty"
                 )
                 fig_bar_pcn.update_traces(texttemplate='%{text:.1f}', textposition='outside')
-                fig_bar_pcn.update_layout(title_x=0, xaxis_tickangle=-180, margin={"r":0,"t":30,"l":0,"b":0})
+                fig_bar_pcn.update_layout(title_x=0, xaxis_tickangle=0, margin={"r":0,"t":30,"l":0,"b":0})
                 st.plotly_chart(fig_bar_pcn, use_container_width=True)
 
         # MAP
