@@ -285,11 +285,11 @@ def load_and_clean_pcn_csv(path):
     # apply standardization to County and Subcounty if present
     if 'County' in df.columns:
         df['County'] = df['County'].apply(standardize_name)
-    if 'Subcounty' in df.columns:
-        df['Subcounty'] = df['Sub county'].apply(standardize_name)
+    if 'Sub county' in df.columns:
+        df['Sub county'] = df['Sub county'].apply(standardize_name)
     # coerce numeric columns where possible
     for col in df.columns:
-        if col not in ['County', 'Subcounty', 'Pillar', 'Indicator']:
+        if col not in ['County', 'Sub county', 'Pillar', 'Indicator']:
             df[col] = pd.to_numeric(df[col], errors='coerce')
     return df
 
