@@ -515,10 +515,10 @@ else:
             else:
                 # prepare mapping dataframe: include all subcounties present in geojson
                 geo_sub_names = [f['properties']['Subcounty_Name_Key'] for f in subcounty_geojson['features']]
-                df_all_sub = pd.DataFrame({'Subcounty': geo_sub_names})
+                df_all_sub = pd.DataFrame({'Sub county': geo_sub_names})
 
-                df_score = pcn_filtered[[ 'Subcounty', selected_indicator_pcn ]].copy()
-                df_score['Subcounty'] = df_score['Subcounty'].apply(standardize_name)
+                df_score = pcn_filtered[[ 'Sub county', selected_indicator_pcn ]].copy()
+                df_score['Sub county'] = df_score['Sub county'].apply(standardize_name)
                 df_map_pcn = df_all_sub.merge(df_score, left_on='Subcounty', right_on='Subcounty', how='left')
 
                 # numeric coerced, keep NaN for missing
@@ -528,10 +528,10 @@ else:
                 fig_map_pcn = px.choropleth_mapbox(
                     df_map_pcn,
                     geojson=subcounty_geojson,
-                    locations='Subcounty',
+                    locations='Sub county',
                     featureidkey="properties.Subcounty_Name_Key",
                     color=selected_indicator_pcn,
-                    hover_name='Subcounty',
+                    hover_name='Sub county',
                     color_continuous_scale="RdYlGn",
                     mapbox_style="white-bg",
                     zoom=6.0,
