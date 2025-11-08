@@ -356,7 +356,7 @@ else:
             text=selected_indicator,
             height=550,
             labels={selected_indicator: "Score (%)"},
-            title=f"{selected_pillar} - {selected_indicator}"
+            title=f"{selected_indicator}"
         )
         fig_bar.update_traces(texttemplate='%{text:.1f}', textposition='outside')
         fig_bar.update_layout(uniformtext_minsize=8, uniformtext_mode='hide', xaxis={'categoryorder':'total descending'})
@@ -496,7 +496,7 @@ else:
                     color='Sub county',
                     text=selected_indicator_pcn,
                     labels={selected_indicator_pcn: "Score (%)"},
-                    title=f"{selected_pillar_pcn} - {selected_indicator_pcn} in {selected_subcounty_pcn}"
+                    title=f"{selected_indicator_pcn} in {selected_subcounty_pcn} Subcounty"
                 )
                 fig_bar_pcn.update_traces(texttemplate='%{text:.1f}', textposition='outside')
                 fig_bar_pcn.update_layout(title_x=0, xaxis_tickangle=-45, margin={"r":0,"t":30,"l":0,"b":0})
