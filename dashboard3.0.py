@@ -519,7 +519,7 @@ else:
 
                 df_score = pcn_filtered[[ 'Sub county', selected_indicator_pcn ]].copy()
                 df_score['Sub county'] = df_score['Sub county'].apply(standardize_name)
-                df_map_pcn = df_all_sub.merge(df_score, left_on='Subcounty', right_on='Subcounty', how='left')
+                df_map_pcn = df_all_sub.merge(df_score, left_on='Sub county', right_on='Sub county', how='left')
 
                 # numeric coerced, keep NaN for missing
                 df_map_pcn[selected_indicator_pcn] = pd.to_numeric(df_map_pcn[selected_indicator_pcn], errors='coerce')
