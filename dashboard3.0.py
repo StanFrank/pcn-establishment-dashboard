@@ -534,6 +534,13 @@ else:
                     opacity=0.85,
                     labels={selected_indicator_pcn: "Score (%)"},
                 )
+                # highlight NaN / zero polygons as white
+                for feature in subcounty_geojson["features"]:
+                    sub_name = feature["properties"]["Subcounty_Name_Key"]
+                    if sub_name in df_map_pcn["Subcounty"].values:
+                        val = df_map_pcn.loc[df_map_pcn["Subcounty"] == sub_name, selected_indicator_pcn].iloc[0]
+                        if pd.isna(val) or val == 0:
+                            feature["properties"]["fill"] = "white"
 
                 fig_map_pcn.update_traces(marker_line={'width':0.5,'color':'grey'}, selector=dict(type='choroplethmapbox'))
                 fig_map_pcn.update_layout(
