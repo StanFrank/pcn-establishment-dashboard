@@ -482,7 +482,7 @@ else:
 
         # BAR
         with colA:
-            st.subheader(f"{selected_indicator_pcn} by Subcounty in {selected_county_pcn}")
+            st.subheader(f"Bar Chart")
             df_bar_pcn = pcn_filtered.sort_values(by=selected_indicator_pcn, ascending=False)
             # if there are many columns, guard against empty
             
@@ -504,7 +504,7 @@ else:
 
         # MAP
         with colB:
-            st.subheader("PCN / Subcounty Map")
+            st.subheader("Geographic Map by Sub County")
             if subcounty_geojson is None:
                 st.info("No subcounty shapefile/geojson loaded (SUBCOUNTY_SHAPE). Map rendering is optional.")
             else:
