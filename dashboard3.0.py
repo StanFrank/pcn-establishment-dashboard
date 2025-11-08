@@ -517,8 +517,19 @@ else:
                 df_map_pcn = df_all_sub.merge(df_score, left_on='Sub county', right_on='Sub county', how='left')
 
                 # numeric coerced, keep NaN for missing
-                df_map_pcn[selected_indicator_pcn] = pd.to_numeric(df_map_pcn[selected_indicator_pcn], errors='coerce')
+                df_score = pcn_filtered_plot[['Sub county', selected_indicator_pcn]].copy()
+                df_score['Sub county'] = df_score['Sub county'].apply(standardize_name)
 
+                # Ensure all subcounties in the geojson are represented
+                geo_sub_names = [f['properties']['Subcounty_Name_Key'] for f in subcounty_geojson['features']]
+                df_all_sub = pd.DataFrame({'Sub county': geo_sub_names})
+
+                # Merge, leaving missing as NaN
+                df_map_pcn = df_all_sub.merge(df_score, on='Sub county', how='left')
+
+                # Clean values
+                df_map_pcn[selected_indicator_pcn] = pd.to_numeric(df_map_pcn[selected_indicator_pcn], errors='coerce')
+                df_map_pcn[selected_indicator_pcn].replace(0, np.nan, inplace=True)
                 # create map
                 fig_map_pcn = px.choropleth_mapbox(
                     df_map_pcn,
@@ -534,13 +545,7 @@ else:
                     opacity=0.85,
                     labels={selected_indicator_pcn: "Score (%)"},
                 )
-                # highlight NaN / zero polygons as white
-                for feature in subcounty_geojson["features"]:
-                    sub_name = feature["properties"]["Subcounty_Name_Key"]
-                    if sub_name in df_map_pcn["Sub county"].values:
-                        val = df_map_pcn.loc[df_map_pcn["Sub county"] == sub_name, selected_indicator_pcn].iloc[0]
-                        if pd.isna(val) or val == 0:
-                            feature["properties"]["fill"] = "white"
+            
 
                 fig_map_pcn.update_traces(marker_line={'width':0.5,'color':'grey'}, selector=dict(type='choroplethmapbox'))
                 fig_map_pcn.update_layout(
