@@ -454,7 +454,7 @@ else:
         # list unique standardized county names from PCN dataset
          selected_pillar_pcn = st.selectbox("PCN Pillar", options=list(pcn_pillars_map.keys()))
     with filter_col4:
-        indicator_options_pcn = pcn_pillars_map[selected_pillar_pcn]
+        indicator_options_pcn = [col for col in pcn_pillars_map[selected_pillar_pcn].columns if col not in ['County','Subcounty']]
         selected_indicator_pcn = st.selectbox("PCN Indicator", options=indicator_options_pcn)
         # allow "All" option
         
@@ -563,21 +563,3 @@ try:
     st.dataframe(pcn_filtered[[ 'County', 'Subcounty', selected_indicator_pcn ]].sort_values(by=selected_indicator_pcn, ascending=False), use_container_width=True)
 except Exception:
     st.write("Select PCN Pillar/Indicator/County to view PCN table.")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
