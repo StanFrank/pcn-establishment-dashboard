@@ -430,8 +430,8 @@ st.markdown("""---""")
 # ============================
 # 6. PCN-LEVEL SECTION (new, built on your final script)
 # ============================
-st.markdown("<h2 style='color:#1E90FF'>PCN-Level (Subcounty) Analysis</h2>", unsafe_allow_html=True)
-st.markdown("Use the filters below to drill down to PCN (subcounty) level.", unsafe_allow_html=True)
+st.markdown("<h2 style='color:#1E90FF'>Subcounty Level Analysis</h2>", unsafe_allow_html=True)
+st.markdown("Use the filters below to drill down to PCN level.", unsafe_allow_html=True)
 
 # Horizontal filters: independent of sidebar controls
 filter_col1, filter_col2, filter_col3, filter_col4 = st.columns([2,2,2,2])
@@ -496,11 +496,10 @@ else:
                     color='Sub county',
                     text=selected_indicator_pcn,
                     labels={selected_indicator_pcn: "Score (%)"},
-                    title=f"{selected_indicator_pcn} - {selected_indicator_pcn} - {selected_county_pcn}"
+                    title=f"{selected_indicator_pcn} by Sub county in {selected_county_pcn}"
                 )
                 fig_bar_pcn.update_traces(texttemplate='%{text:.1f}', textposition='outside')
-                fig_bar_pcn.update_layout(uniformtext_minsize=8, uniformtext_mode='hide', xaxis={'categoryorder':'total descending'})
-                fig_bar_pcn.update_layout(title_x=0.5, xaxis_tickangle=-45, margin={"r":0,"t":30,"l":0,"b":0})
+                fig_bar_pcn.update_layout(title_x=0, xaxis_tickangle=-45, margin={"r":0,"t":30,"l":0,"b":0})
                 st.plotly_chart(fig_bar_pcn, use_container_width=True)
 
         # MAP
@@ -565,4 +564,3 @@ try:
     st.dataframe(pcn_filtered[[ 'County', 'Subcounty', selected_indicator_pcn ]].sort_values(by=selected_indicator_pcn, ascending=False), use_container_width=True)
 except Exception:
     st.write("Select PCN Pillar/Indicator/County to view PCN table.")
-
