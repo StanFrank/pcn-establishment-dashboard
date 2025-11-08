@@ -482,7 +482,7 @@ else:
 
         # BAR
         with colA:
-            st.subheader(f"{selected_indicator_pcn} by PCN / Subcounty")
+            st.subheader(f"{selected_indicator_pcn} by Subcounty")
             df_bar_pcn = pcn_filtered.sort_values(by=selected_indicator_pcn, ascending=False)
             # if there are many columns, guard against empty
             if df_bar_pcn.empty:
@@ -563,4 +563,5 @@ try:
     st.dataframe(pcn_filtered[[ 'County', 'Subcounty', selected_indicator_pcn ]].sort_values(by=selected_indicator_pcn, ascending=False), use_container_width=True)
 except Exception:
     st.write("Select PCN Pillar/Indicator/County to view PCN table.")
+
 
