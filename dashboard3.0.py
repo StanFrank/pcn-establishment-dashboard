@@ -496,12 +496,12 @@ else:
             else:
                 fig_bar_pcn = px.bar(
                     df_bar_pcn,
-                    x='Subcounty',
+                    x='Sub county',
                     y=selected_indicator_pcn,
-                    color='Subcounty',
+                    color='Sub county',
                     text=selected_indicator_pcn,
                     labels={selected_indicator_pcn: "Score (%)"},
-                    title=f"{selected_indicator_pcn} by Subcounty in {selected_county_pcn}"
+                    title=f"{selected_indicator_pcn} by Sub county in {selected_county_pcn}"
                 )
                 fig_bar_pcn.update_traces(texttemplate='%{text:.1f}', textposition='outside')
                 fig_bar_pcn.update_layout(title_x=0.5, xaxis_tickangle=-45, margin={"r":0,"t":30,"l":0,"b":0})
