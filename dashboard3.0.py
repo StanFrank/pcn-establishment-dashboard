@@ -446,9 +446,9 @@ else:
         selected_county_pcn = st.selectbox("County (PCN data)", options=county_options_pcn)
        
     with filter_col2:
+        subcounty_list = sorted(pcn_lvl_df[pcn_lvl_df['County'] == selected_county_pcn]['Sub county'].dropna().unique())
         subcounty_list = ["All"] + subcounty_list
         selected_subcounty_pcn = st.selectbox("Subcounty / PCN", options=subcounty_list)
-        subcounty_list = sorted(pcn_lvl_df[pcn_lvl_df['County'] == selected_county_pcn]['Sub county'].dropna().unique())
         
     with filter_col3:
         # list unique standardized county names from PCN dataset
@@ -563,6 +563,7 @@ try:
     st.dataframe(pcn_filtered[[ 'County', 'Subcounty', selected_indicator_pcn ]].sort_values(by=selected_indicator_pcn, ascending=False), use_container_width=True)
 except Exception:
     st.write("Select PCN Pillar/Indicator/County to view PCN table.")
+
 
 
 
