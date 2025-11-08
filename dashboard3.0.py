@@ -470,7 +470,7 @@ else:
     else:
         # apply subcounty filter if not 'All'
         if selected_subcounty_pcn != "All":
-            pcn_filtered_plot = pcn_filtered[pcn_filtered['Subcounty'] == selected_subcounty_pcn]
+            pcn_filtered_plot = pcn_filtered[pcn_filtered['Sub county'] == selected_subcounty_pcn]
         else:
             pcn_filtered_plot = pcn_filtered.copy()
 
