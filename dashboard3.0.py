@@ -485,12 +485,7 @@ else:
             st.subheader(f"{selected_indicator_pcn} by Subcounty in {selected_county_pcn}")
             df_bar_pcn = pcn_filtered.sort_values(by=selected_indicator_pcn, ascending=False)
             # if there are many columns, guard against empty
-            st.write("🔍 Debug info:")
-            st.write("Selected County:", selected_county_pcn)
-            st.write("Selected Indicator:", selected_indicator_pcn)
-            st.write("PCN data shape:", df_bar_pcn.shape)
-            st.write("PCN columns:", df_bar_pcn.columns.tolist())
-            st.write("PCN preview:", df_bar_pcn.head())
+            
             if df_bar_pcn.empty:
                 st.info("No PCN data available for this selection.")
             else:
