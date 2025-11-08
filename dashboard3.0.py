@@ -482,7 +482,7 @@ else:
 
         # BAR
         with colA:
-            st.subheader(f"{selected_indicator_pcn} by PCN / Subcounty in {selected_county_pcn}")
+            st.subheader(f"{selected_indicator_pcn} by PCN / Subcounty")
             df_bar_pcn = pcn_filtered.sort_values(by=selected_indicator_pcn, ascending=False)
             # if there are many columns, guard against empty
             if df_bar_pcn.empty:
@@ -495,7 +495,7 @@ else:
                     color='Subcounty',
                     text=selected_indicator_pcn,
                     labels={selected_indicator_pcn: "Score (%)"},
-                    title=f"{selected_indicator_pcn} by Subcounty"
+                    title=f"{selected_indicator_pcn} by Subcounty in {selected_county_pcn}"
                 )
                 fig_bar_pcn.update_traces(texttemplate='%{text:.1f}', textposition='outside')
                 fig_bar_pcn.update_layout(title_x=0.5, xaxis_tickangle=-45, margin={"r":0,"t":30,"l":0,"b":0})
@@ -563,3 +563,4 @@ try:
     st.dataframe(pcn_filtered[[ 'County', 'Subcounty', selected_indicator_pcn ]].sort_values(by=selected_indicator_pcn, ascending=False), use_container_width=True)
 except Exception:
     st.write("Select PCN Pillar/Indicator/County to view PCN table.")
+
