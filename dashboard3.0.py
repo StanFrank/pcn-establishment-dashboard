@@ -483,7 +483,7 @@ else:
         # BAR
         with colA:
             st.subheader(f"Bar Chart")
-            df_bar_pcn = pcn_filtered.sort_values(by=selected_indicator_pcn, ascending=False)
+            df_bar_pcn = pcn_filtered_plot.sort_values(by=selected_indicator_pcn, ascending=False)
             # if there are many columns, guard against empty
             
             if df_bar_pcn.empty:
