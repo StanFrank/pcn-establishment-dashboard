@@ -537,8 +537,8 @@ else:
                 # highlight NaN / zero polygons as white
                 for feature in subcounty_geojson["features"]:
                     sub_name = feature["properties"]["Subcounty_Name_Key"]
-                    if sub_name in df_map_pcn["Subcounty"].values:
-                        val = df_map_pcn.loc[df_map_pcn["Subcounty"] == sub_name, selected_indicator_pcn].iloc[0]
+                    if sub_name in df_map_pcn["Sub county"].values:
+                        val = df_map_pcn.loc[df_map_pcn["Sub county"] == sub_name, selected_indicator_pcn].iloc[0]
                         if pd.isna(val) or val == 0:
                             feature["properties"]["fill"] = "white"
 
