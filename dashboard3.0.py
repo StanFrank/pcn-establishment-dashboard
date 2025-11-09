@@ -324,14 +324,14 @@ pcn_lvl_df = load_and_clean_pcn_csv(PCN_CSV)
 
 
 geojson_data = load_geodata(COUNTY_SHAPE)
-
+subcounty_geojson = load_subcounty_geodata(SUBCOUNTY_SHAPE)
 
 # load subcounty geojson if available (optional)
-subcounty_geojson = None
-try:
-    subcounty_geojson = load_subcounty_geodata(SUBCOUNTY_SHAPE)
-except Exception:
-    subcounty_geojson = None
+#subcounty_geojson = None
+#try:
+    #subcounty_geojson = load_subcounty_geodata(SUBCOUNTY_SHAPE)
+#except Exception:
+    #subcounty_geojson = None
 
 # ============================
 # 5. STREAMLIT UI: County-Level (your original working section)
@@ -462,7 +462,7 @@ else:
     with filter_col2:
         subcounty_list = sorted(pcn_lvl_df[pcn_lvl_df['County'] == selected_county_pcn]['Sub county'].dropna().unique())
         subcounty_list = ["All"] + subcounty_list
-        selected_subcounty_pcn = st.selectbox("Subcounty / PCN", options=subcounty_list)
+        selected_subcounty_pcn = st.selectbox("Subcounty", options=subcounty_list)
         
     with filter_col3:
         # list unique standardized county names from PCN dataset
@@ -474,9 +474,7 @@ else:
         
 
     # filter pcn dataframe
-    pcn_filtered = pcn_lvl_df[
-        (pcn_lvl_df['County'] == selected_county_pcn)
-    ].copy()
+    pcn_filtered = pcn_lvl_df[(pcn_lvl_df['County'] == selected_county_pcn)].copy()
 
     # if a specific indicator was chosen, ensure its column exists in filtered frame
     if selected_indicator_pcn not in pcn_filtered.columns:
@@ -520,51 +518,42 @@ else:
         with colB:
             st.subheader("Geographic Map by Sub County")
             if subcounty_geojson is None:
-                st.info("No subcounty shapefile/geojson loaded (SUBCOUNTY_SHAPE). Map rendering is optional.")
+                st.error("No subcounty shapefile/geojson loaded (SUBCOUNTY_SHAPE). Map rendering is optional.")
             else:
-                # --- Prepare mapping dataframe and ensure matches with GeoJSON ---
-                df_score = pcn_filtered_plot[['Sub county', selected_indicator_pcn]].copy()
-                df_score['Sub county'] = df_score['Sub county'].apply(standardize_name)
 
-                # Extract subcounty names from GeoJSON
+                # --- Prepare mapping dataframe and ensure matches with GeoJSON ---
                 geo_sub_names = [f['properties']['Subcounty_Name_Key'] for f in subcounty_geojson['features']]
-                # ... inside the 'with colB:' section
+                df_all_sub = pd.DataFrame({'Sub county': geo_sub_names})
 
-                # --- Prepare mapping dataframe and ensure matches with GeoJSON ---
                 df_score = pcn_filtered_plot[['Sub county', selected_indicator_pcn]].copy()
                 df_score['Sub county'] = df_score['Sub county'].apply(standardize_name)
 
                 # Extract subcounty names from GeoJSON (already standardized in load_subcounty_geodata)
-                geo_sub_names = [f['properties']['Subcounty_Name_Key'] for f in subcounty_geojson['features']]
-                df_all_sub = pd.DataFrame({'Sub county': geo_sub_names})
-
+                
                 # --- START DEBUGGING BLOCK ---
                 # 1. Check which names are in the data but NOT in the GeoJSON
-                data_names = set(df_score['Sub county'].unique())
-                geo_names = set(geo_sub_names)
-                missing_in_geo = data_names - geo_names
-                if missing_in_geo:
-                    st.warning(f"Names in PCN data but **missing in Subcounty GeoJSON**: {list(missing_in_geo)}")
+                #data_names = set(df_score['Sub county'].unique())
+                #geo_names = set(geo_sub_names)
+                #missing_in_geo = data_names - geo_names
+               # if missing_in_geo:
+                 #   st.warning(f"Names in PCN data but **missing in Subcounty GeoJSON**: {list(missing_in_geo)}")
 
                 # 2. Check which names are in the GeoJSON but NOT in the data (for the selected County)
-                missing_in_data = geo_names - data_names
+               # missing_in_data = geo_names - data_names
                 # Filter this list further to only show subcounties that *should* be in the selected county
                 # This is complex without the County property in the subcounty GeoJSON, but still helpful:
-                st.info(f"Total {len(geo_names)} subcounties found in GeoJSON. {len(data_names)} unique PCNs in data.")
+                #st.info(f"Total {len(geo_names)} subcounties found in GeoJSON. {len(data_names)} unique PCNs in data.")
                 # --- END DEBUGGING BLOCK ---
 
                 # Merge all subcounties from geojson with actual data
                 df_map_pcn = df_all_sub.merge(df_score, on='Sub county', how='left')
 
-                # ... continue with the map plotting logic
-                df_all_sub = pd.DataFrame({'Sub county': geo_sub_names})
 
-                # Merge all subcounties from geojson with actual data
-                df_map_pcn = df_all_sub.merge(df_score, on='Sub county', how='left')
 
                 # Clean and replace zeros with NaN (so they don't show on map)
-                df_map_pcn[selected_indicator_pcn] = pd.to_numeric(df_map_pcn[selected_indicator_pcn], errors='coerce')
-                df_map_pcn[selected_indicator_pcn].replace(0, np.nan, inplace=True)
+                df_map_pcn[selected_indicator_pcn] = df_map_data[selected_indicator_pcn].fillna(0)
+                #df_map_pcn[selected_indicator_pcn] = pd.to_numeric(df_map_pcn[selected_indicator_pcn], errors='coerce')
+                #df_map_pcn[selected_indicator_pcn].replace(0, np.nan, inplace=True)
 
                 # --- Create map ---
                 fig_map_pcn = px.choropleth_mapbox(
