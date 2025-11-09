@@ -551,7 +551,7 @@ else:
 
 
                 # Clean and replace zeros with NaN (so they don't show on map)
-                df_map_pcn[selected_indicator_pcn] = df_map_data[selected_indicator_pcn].fillna(0)
+                df_map_pcn[selected_indicator_pcn] = df_map_pcn[selected_indicator_pcn].fillna(0)
                 #df_map_pcn[selected_indicator_pcn] = pd.to_numeric(df_map_pcn[selected_indicator_pcn], errors='coerce')
                 #df_map_pcn[selected_indicator_pcn].replace(0, np.nan, inplace=True)
 
