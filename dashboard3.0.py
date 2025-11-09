@@ -185,20 +185,34 @@ PCN_PILLAR_KEYWORDS = {
 # -------------------------
 # 2. UTILITIES (kept and restored)
 # -------------------------
+
 def standardize_name(name):
     if pd.isna(name):
         return name
     name = str(name).strip().title()
+    
+    # --- START FIX: More robust cleaning ---
     name = (
         name.replace('\xa0', ' ')
         .replace('/', ' ')
         .replace('-', ' ')
-        .replace('County', '')
+        .replace('Sub County', '') # Added to remove "Sub County"
+        .replace('Sub-County', '') # Added to remove "Sub-County"
+        .replace('District', '')   # Added to remove "District"
+        .replace('Division', '')   # Added to remove "Division"
+        .replace('County', '')     # Original line
     )
-    while '  ' in name:
+    # --- END FIX ---
+    
+    while '  ' in name: # Note: two spaces here
         name = name.replace('  ', ' ')
+    
+    # 2. Add explicit mapping for problematic names
     name_standardization_map = {
         'Nairobi City': 'Nairobi',
+        # Add explicit fixes for the names that still don't match after cleaning:
+        # Example: If 'Garissa Township Sub ' is still the GeoJSON name, map it to the desired name.
+        # However, the expanded cleaning above should fix this, so start with the cleaning.
     }
     name = name_standardization_map.get(name, name)
     return name.strip()
