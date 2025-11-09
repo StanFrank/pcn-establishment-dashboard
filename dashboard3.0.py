@@ -508,29 +508,22 @@ else:
             if subcounty_geojson is None:
                 st.info("No subcounty shapefile/geojson loaded (SUBCOUNTY_SHAPE). Map rendering is optional.")
             else:
-                # prepare mapping dataframe: include all subcounties present in geojson
-                geo_sub_names = [f['properties']['Subcounty_Name_Key'] for f in subcounty_geojson['features']]
-                df_all_sub = pd.DataFrame({'Sub county': geo_sub_names})
-
-                df_score = pcn_filtered[[ 'Sub county', selected_indicator_pcn ]].copy()
-                df_score['Sub county'] = df_score['Sub county'].apply(standardize_name)
-                df_map_pcn = df_all_sub.merge(df_score, left_on='Sub county', right_on='Sub county', how='left')
-
-                # numeric coerced, keep NaN for missing
+                # --- Prepare mapping dataframe and ensure matches with GeoJSON ---
                 df_score = pcn_filtered_plot[['Sub county', selected_indicator_pcn]].copy()
                 df_score['Sub county'] = df_score['Sub county'].apply(standardize_name)
 
-                # Ensure all subcounties in the geojson are represented
+                # Extract subcounty names from GeoJSON
                 geo_sub_names = [f['properties']['Subcounty_Name_Key'] for f in subcounty_geojson['features']]
                 df_all_sub = pd.DataFrame({'Sub county': geo_sub_names})
 
-                # Merge, leaving missing as NaN
+                # Merge all subcounties from geojson with actual data
                 df_map_pcn = df_all_sub.merge(df_score, on='Sub county', how='left')
 
-                # Clean values
+                # Clean and replace zeros with NaN (so they don't show on map)
                 df_map_pcn[selected_indicator_pcn] = pd.to_numeric(df_map_pcn[selected_indicator_pcn], errors='coerce')
                 df_map_pcn[selected_indicator_pcn].replace(0, np.nan, inplace=True)
-                # create map
+
+                # --- Create map ---
                 fig_map_pcn = px.choropleth_mapbox(
                     df_map_pcn,
                     geojson=subcounty_geojson,
@@ -540,19 +533,19 @@ else:
                     hover_name='Sub county',
                     color_continuous_scale="RdYlGn",
                     mapbox_style="white-bg",
-                    zoom=6.0,
+                    zoom=6.2,
                     center={"lat": 0.5, "lon": 37.9},
                     opacity=0.85,
                     labels={selected_indicator_pcn: "Score (%)"},
                 )
-            
 
                 fig_map_pcn.update_traces(marker_line={'width':0.5,'color':'grey'}, selector=dict(type='choroplethmapbox'))
                 fig_map_pcn.update_layout(
                     coloraxis_colorbar=dict(
+                        title=dict(text="Score (%)", font=dict(color="black", size=12)),
                         tickformat=".0f",
                         tickfont=dict(color="black"),
-                        x=0.95, xanchor="right", y=0.5, yanchor="middle", len=0.6, thickness=12,
+                        x=0.97, xanchor="right", y=0.5, yanchor="middle", len=0.6, thickness=12,
                         bgcolor="rgba(255,255,255,0.6)"
                     ),
                     margin={"r":0,"t":30,"l":0,"b":0}
