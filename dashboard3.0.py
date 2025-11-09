@@ -514,6 +514,35 @@ else:
 
                 # Extract subcounty names from GeoJSON
                 geo_sub_names = [f['properties']['Subcounty_Name_Key'] for f in subcounty_geojson['features']]
+                # ... inside the 'with colB:' section
+
+                # --- Prepare mapping dataframe and ensure matches with GeoJSON ---
+                df_score = pcn_filtered_plot[['Sub county', selected_indicator_pcn]].copy()
+                df_score['Sub county'] = df_score['Sub county'].apply(standardize_name)
+
+                # Extract subcounty names from GeoJSON (already standardized in load_subcounty_geodata)
+                geo_sub_names = [f['properties']['Subcounty_Name_Key'] for f in subcounty_geojson['features']]
+                df_all_sub = pd.DataFrame({'Sub county': geo_sub_names})
+
+                # --- START DEBUGGING BLOCK ---
+                # 1. Check which names are in the data but NOT in the GeoJSON
+                data_names = set(df_score['Sub county'].unique())
+                geo_names = set(geo_sub_names)
+                missing_in_geo = data_names - geo_names
+                if missing_in_geo:
+                    st.warning(f"Names in PCN data but **missing in Subcounty GeoJSON**: {list(missing_in_geo)}")
+
+                # 2. Check which names are in the GeoJSON but NOT in the data (for the selected County)
+                missing_in_data = geo_names - data_names
+                # Filter this list further to only show subcounties that *should* be in the selected county
+                # This is complex without the County property in the subcounty GeoJSON, but still helpful:
+                st.info(f"Total {len(geo_names)} subcounties found in GeoJSON. {len(data_names)} unique PCNs in data.")
+                # --- END DEBUGGING BLOCK ---
+
+                # Merge all subcounties from geojson with actual data
+                df_map_pcn = df_all_sub.merge(df_score, on='Sub county', how='left')
+
+                # ... continue with the map plotting logic
                 df_all_sub = pd.DataFrame({'Sub county': geo_sub_names})
 
                 # Merge all subcounties from geojson with actual data
