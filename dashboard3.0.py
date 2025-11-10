@@ -252,18 +252,25 @@ def load_subcounty_geodata(shp_path):
         if gdf.crs != "EPSG:4326":
             gdf = gdf.to_crs(epsg=4326)
         
-        # 🎯 CRITICAL FIX: Explicitly use ADM2_EN for the Subcounty name.
+        # CRITICAL FIX: Explicitly use ADM2_EN for Subcounty name and ADM1_EN for County name
         NAME_COLUMN_KEY = 'ADM2_EN'
+        COUNTY_COLUMN_KEY = 'ADM1_EN' # Assumed County column in the adm2 shapefile
         
-        if NAME_COLUMN_KEY not in gdf.columns:
-            st.error(f"Shapefile does not contain the expected name column '{NAME_COLUMN_KEY}'. Cannot map.")
+        if NAME_COLUMN_KEY not in gdf.columns or COUNTY_COLUMN_KEY not in gdf.columns:
+            st.error(f"Shapefile is missing expected columns ('{NAME_COLUMN_KEY}' or '{COUNTY_COLUMN_KEY}'). Cannot map.")
             return None 
             
-        # Use the known column key to create the GeoJSON feature key
-        gdf_clean = gdf[[NAME_COLUMN_KEY, 'geometry']].rename(columns={NAME_COLUMN_KEY: 'Subcounty_Name_Key'})
+        # Select both name columns and rename them
+        gdf_clean = gdf[[NAME_COLUMN_KEY, COUNTY_COLUMN_KEY, 'geometry']].rename(
+            columns={
+                NAME_COLUMN_KEY: 'Subcounty_Name_Key',
+                COUNTY_COLUMN_KEY: 'County_Name_Key' # New property for filtering
+            }
+        )
         
-        # Apply standardization
+        # Apply standardization to both names
         gdf_clean['Subcounty_Name_Key'] = gdf_clean['Subcounty_Name_Key'].apply(standardize_name)
+        gdf_clean['County_Name_Key'] = gdf_clean['County_Name_Key'].apply(standardize_name)
         
         geojson_data = json.loads(gdf_clean.to_json())
         return geojson_data
@@ -455,8 +462,16 @@ if not pcn_pillars_map:
     st.warning("No PCN-level pillars detected automatically. Please check PCN_PILLAR_KEYWORDS or column names in pcn_lvl_data.csv.")
 else:
     with filter_col1:
+# Add "All" option for County
         county_options_pcn = sorted(pcn_lvl_df['County'].dropna().unique())
-        selected_county_pcn = st.selectbox("County (PCN data)", options=county_options_pcn)
+        county_options_pcn_with_all = ["All"] + county_options_pcn
+        selected_county_pcn = st.selectbox("County (PCN data)", options=county_options_pcn_with_all)
+        
+    # --- Filter data based on County Selection ---
+    if selected_county_pcn == "All":
+        pcn_filtered = pcn_lvl_df.copy()
+    else:
+        pcn_filtered = pcn_lvl_df[(pcn_lvl_df['County'] == selected_county_pcn)].copy()
        
     with filter_col2:
         subcounty_list = sorted(pcn_lvl_df[pcn_lvl_df['County'] == selected_county_pcn]['Sub county'].dropna().unique())
@@ -527,68 +542,71 @@ else:
                 df_score = pcn_filtered_plot[['Sub county', selected_indicator_pcn]].copy()
                 df_score['Sub county'] = df_score['Sub county'].apply(standardize_name)
 
-# --- Insert this *before* the merge (df_map_pcn = df_all_sub.merge(...)) ---
+            # 1. Filter the GeoJSON features based on the selected county
+            if selected_county_pcn != "All":
+                
+                # Filter features where the 'County_Name_Key' property matches the selected County
+                filtered_features = [
+                    f for f in subcounty_geojson['features']
+                    if f['properties'].get('County_Name_Key') == selected_county_pcn
+                ]
+                
+                # Create a new, filtered GeoJSON object
+                map_geojson = subcounty_geojson.copy()
+                map_geojson['features'] = filtered_features
+                
+                # Set map settings for a specific county view
+                map_center = {"lat": 0.5, "lon": 37.9} # Default center
+                map_zoom = 8.5 # Zoom level suitable for viewing a single county
+                map_title_text = f"{selected_indicator_pcn} across PCNs in {selected_county_pcn}"
 
-                data_names = set(df_score['Sub county'].unique())
-                geo_names = set(geo_sub_names) # GeoJSON names
-                missing_in_geo = data_names - geo_names
-                missing_in_data = geo_names - data_names
+            else:
+                # If "All" is selected, use the full GeoJSON and national zoom/center
+                map_geojson = subcounty_geojson
+                map_center = {"lat": 0.5, "lon": 37.9} # National center
+                map_zoom = 5.0 # National zoom level
+                map_title_text = f"{selected_indicator_pcn} across all PCNs nationally"
 
-                st.markdown("### Debug Names Check")
-                st.write(f"PCN data names (unique): **{len(data_names)}**")
-                st.write(f"GeoJSON names (unique): **{len(geo_names)}**")
-                if missing_in_geo:
-                    st.error(f"PCN names that **failed to match** in GeoJSON: {list(missing_in_geo)[:5]}...")
-                if missing_in_data:
-                    # This is less critical, as these are likely subcounties without data
-                    st.info(f"GeoJSON names that **lack PCN data**: {list(missing_in_data)[:5]}...")
+            # --- Prepare mapping dataframe and ensure matches with GeoJSON ---
+            geo_sub_names = [f['properties']['Subcounty_Name_Key'] for f in map_geojson['features']]
+            df_all_sub = pd.DataFrame({'Sub county': geo_sub_names})
 
-                # Merge all subcounties from geojson with actual data
-                df_map_pcn = df_all_sub.merge(df_score, on='Sub county', how='left')
+            df_score = pcn_filtered_plot[['Sub county', selected_indicator_pcn]].copy()
+            df_score['Sub county'] = df_score['Sub county'].apply(standardize_name)
 
+            # Merge all subcounties from geojson with actual data
+            df_map_pcn = df_all_sub.merge(df_score, on='Sub county', how='left')
 
+            # Fill NaN scores (for subcounties with no data) with 0 for plotting
+            df_map_pcn[selected_indicator_pcn] = df_map_pcn[selected_indicator_pcn].fillna(0)
 
-                # Clean and replace zeros with NaN (so they don't show on map)
-                df_map_pcn[selected_indicator_pcn] = df_map_pcn[selected_indicator_pcn].fillna(0)
-                #df_map_pcn[selected_indicator_pcn] = pd.to_numeric(df_map_pcn[selected_indicator_pcn], errors='coerce')
-                #df_map_pcn[selected_indicator_pcn].replace(0, np.nan, inplace=True)
+            # --- Create map ---
+            fig_map_pcn = px.choropleth_mapbox(
+                df_map_pcn,
+                geojson=map_geojson, # Use the filtered GeoJSON
+                locations='Sub county',
+                featureidkey="properties.Subcounty_Name_Key",
+                color=selected_indicator_pcn,
+                hover_name='Sub county',
+                color_continuous_scale="RdYlGn",
+                mapbox_style="white-bg",
+                zoom=map_zoom, # Use dynamic zoom
+                center=map_center, # Use dynamic center
+                opacity=0.85,
+                labels={selected_indicator_pcn: "Score (%)"},
+            )
 
-                # --- Create map ---
-                fig_map_pcn = px.choropleth_mapbox(
-                    df_map_pcn,
-                    geojson=subcounty_geojson,
-                    locations='Sub county',
-                    featureidkey="properties.Subcounty_Name_Key",
-                    color=selected_indicator_pcn,
-                    hover_name='Sub county',
-                    color_continuous_scale="RdYlGn",
-                    mapbox_style="white-bg",
-                    zoom=6.2,
-                    center={"lat": 0.5, "lon": 37.9},
-                    opacity=0.85,
-                    labels={selected_indicator_pcn: "Score (%)"},
-                )
+            fig_map_pcn.update_traces(marker_line={'width':0.5,'color':'grey'}, selector=dict(type='choroplethmapbox'))
+            fig_map_pcn.update_layout(
+                # ... (Keep your colorbar layout here) ...
+            )
 
-                fig_map_pcn.update_traces(marker_line={'width':0.5,'color':'grey'}, selector=dict(type='choroplethmapbox'))
-                fig_map_pcn.update_layout(
-                    coloraxis_colorbar=dict(
-                        title=dict(text="Score (%)", font=dict(color="black", size=12)),
-                        tickformat=".0f",
-                        tickfont=dict(color="black"),
-                        x=0.97, xanchor="right", y=0.5, yanchor="middle", len=0.6, thickness=12,
-                        bgcolor="rgba(255,255,255,0.6)"
-                    ),
-                    margin={"r":0,"t":30,"l":0,"b":0}
-                )
+            fig_map_pcn.add_annotation(
+                text=map_title_text, # Use dynamic title
+                # ... (Keep your annotation styling here) ...
+            )
 
-                fig_map_pcn.add_annotation(
-                    text=f"{selected_indicator_pcn} across PCNs in {selected_county_pcn}",
-                    xref="paper", yref="paper", x=0.5, y=0.98, showarrow=False,
-                    font=dict(size=11, color="black"), bgcolor="rgba(255,255,255,0.7)",
-                    bordercolor="black", borderwidth=1, borderpad=6
-                )
-
-                st.plotly_chart(fig_map_pcn, use_container_width=True)
+            st.plotly_chart(fig_map_pcn, use_container_width=True)
 
 # -------------------------
 # 7. Data Table Summary (optional) - show the filtered PCN data for transparency
