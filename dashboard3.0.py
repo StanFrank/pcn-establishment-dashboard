@@ -251,21 +251,20 @@ def load_subcounty_geodata(shp_path):
         gdf = gpd.read_file(shp_path)
         if gdf.crs != "EPSG:4326":
             gdf = gdf.to_crs(epsg=4326)
-        # you may need to rename the subcounty property to match whatever property you use
-        # we'll try common names (SUBCOUNTY, SUB_COUNTY, SUBCOUNTY_NAM etc.)
-        # here we detect the first non-geometry column that likely holds the name
-        name_col = None
-        for c in gdf.columns:
-            if c.lower() not in ['geometry', 'objectid', 'fid']:
-                # heuristics: contains 'sub' or 'name'
-                if 'sub' in c.lower() or 'name' in c.lower():
-                    name_col = c
-                    break
-        if name_col is None:
-            # fallback to first non-geometry column
-            name_col = [c for c in gdf.columns if c.lower() != 'geometry'][0]
-        gdf_clean = gdf[[name_col, 'geometry']].rename(columns={name_col: 'Subcounty_Name_Key'})
+        
+        # 🎯 CRITICAL FIX: Explicitly use ADM2_EN for the Subcounty name.
+        NAME_COLUMN_KEY = 'ADM2_EN'
+        
+        if NAME_COLUMN_KEY not in gdf.columns:
+            st.error(f"Shapefile does not contain the expected name column '{NAME_COLUMN_KEY}'. Cannot map.")
+            return None 
+            
+        # Use the known column key to create the GeoJSON feature key
+        gdf_clean = gdf[[NAME_COLUMN_KEY, 'geometry']].rename(columns={NAME_COLUMN_KEY: 'Subcounty_Name_Key'})
+        
+        # Apply standardization
         gdf_clean['Subcounty_Name_Key'] = gdf_clean['Subcounty_Name_Key'].apply(standardize_name)
+        
         geojson_data = json.loads(gdf_clean.to_json())
         return geojson_data
     except Exception as e:
@@ -528,22 +527,21 @@ else:
                 df_score = pcn_filtered_plot[['Sub county', selected_indicator_pcn]].copy()
                 df_score['Sub county'] = df_score['Sub county'].apply(standardize_name)
 
-                # Extract subcounty names from GeoJSON (already standardized in load_subcounty_geodata)
-                
-                # --- START DEBUGGING BLOCK ---
-                # 1. Check which names are in the data but NOT in the GeoJSON
-                #data_names = set(df_score['Sub county'].unique())
-                #geo_names = set(geo_sub_names)
-                #missing_in_geo = data_names - geo_names
-               # if missing_in_geo:
-                 #   st.warning(f"Names in PCN data but **missing in Subcounty GeoJSON**: {list(missing_in_geo)}")
+# --- Insert this *before* the merge (df_map_pcn = df_all_sub.merge(...)) ---
 
-                # 2. Check which names are in the GeoJSON but NOT in the data (for the selected County)
-               # missing_in_data = geo_names - data_names
-                # Filter this list further to only show subcounties that *should* be in the selected county
-                # This is complex without the County property in the subcounty GeoJSON, but still helpful:
-                #st.info(f"Total {len(geo_names)} subcounties found in GeoJSON. {len(data_names)} unique PCNs in data.")
-                # --- END DEBUGGING BLOCK ---
+                data_names = set(df_score['Sub county'].unique())
+                geo_names = set(geo_sub_names) # GeoJSON names
+                missing_in_geo = data_names - geo_names
+                missing_in_data = geo_names - data_names
+
+                st.markdown("### Debug Names Check")
+                st.write(f"PCN data names (unique): **{len(data_names)}**")
+                st.write(f"GeoJSON names (unique): **{len(geo_names)}**")
+                if missing_in_geo:
+                    st.error(f"PCN names that **failed to match** in GeoJSON: {list(missing_in_geo)[:5]}...")
+                if missing_in_data:
+                    # This is less critical, as these are likely subcounties without data
+                    st.info(f"GeoJSON names that **lack PCN data**: {list(missing_in_data)[:5]}...")
 
                 # Merge all subcounties from geojson with actual data
                 df_map_pcn = df_all_sub.merge(df_score, on='Sub county', how='left')
