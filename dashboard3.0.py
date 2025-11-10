@@ -542,60 +542,61 @@ else:
                 df_score = pcn_filtered_plot[['Sub county', selected_indicator_pcn]].copy()
                 df_score['Sub county'] = df_score['Sub county'].apply(standardize_name)
 
+# --- Insert this *before* the merge (df_map_pcn = df_all_sub.merge(...)) ---
 
                 # 1. Filter the GeoJSON features based on the selected county
-            if selected_county_pcn != "All":
-                
-                # Filter features where the 'County_Name_Key' property matches the selected County
-                filtered_features = [
-                    f for f in subcounty_geojson['features']
-                    if f['properties'].get('County_Name_Key') == selected_county_pcn
-                ]
-                
-                # Create a new, filtered GeoJSON object
-                map_geojson = subcounty_geojson.copy()
-                map_geojson['features'] = filtered_features
-                
-                # Set map settings for a specific county view
-                map_center = {"lat": 0.5, "lon": 37.9} # Default center
-                map_zoom = 8.5 # Zoom level suitable for viewing a single county
-                map_title_text = f"{selected_indicator_pcn} across PCNs in {selected_county_pcn}"
+                if selected_county_pcn != "All":
+                    
+                    # Filter features where the 'County_Name_Key' property matches the selected County
+                    filtered_features = [
+                        f for f in subcounty_geojson['features']
+                        if f['properties'].get('County_Name_Key') == selected_county_pcn
+                    ]
+                    
+                    # Create a new, filtered GeoJSON object
+                    map_geojson = subcounty_geojson.copy()
+                    map_geojson['features'] = filtered_features
+                    
+                    # Set map settings for a specific county view
+                    map_center = {"lat": 0.5, "lon": 37.9} # Default center
+                    map_zoom = 8.5 # Zoom level suitable for viewing a single county
+                    map_title_text = f"{selected_indicator_pcn} across PCNs in {selected_county_pcn}"
 
-            else:
-                # If "All" is selected, use the full GeoJSON and national zoom/center
-                map_geojson = subcounty_geojson
-                map_center = {"lat": 0.5, "lon": 37.9} # National center
-                map_zoom = 5.0 # National zoom level
-                map_title_text = f"{selected_indicator_pcn} across all PCNs nationally"
+                else:
+                    # If "All" is selected, use the full GeoJSON and national zoom/center
+                    map_geojson = subcounty_geojson
+                    map_center = {"lat": 0.5, "lon": 37.9} # National center
+                    map_zoom = 5.0 # National zoom level
+                    map_title_text = f"{selected_indicator_pcn} across all PCNs nationally"
 
-            # --- Prepare mapping dataframe and ensure matches with GeoJSON ---
-            geo_sub_names = [f['properties']['Subcounty_Name_Key'] for f in map_geojson['features']]
-            df_all_sub = pd.DataFrame({'Sub county': geo_sub_names})
+                # --- Prepare mapping dataframe and ensure matches with GeoJSON ---
+                geo_sub_names = [f['properties']['Subcounty_Name_Key'] for f in map_geojson['features']]
+                df_all_sub = pd.DataFrame({'Sub county': geo_sub_names})
 
-            df_score = pcn_filtered_plot[['Sub county', selected_indicator_pcn]].copy()
-            df_score['Sub county'] = df_score['Sub county'].apply(standardize_name)
+                df_score = pcn_filtered_plot[['Sub county', selected_indicator_pcn]].copy()
+                df_score['Sub county'] = df_score['Sub county'].apply(standardize_name)
 
-            # Merge all subcounties from geojson with actual data
-            df_map_pcn = df_all_sub.merge(df_score, on='Sub county', how='left')
+                # Merge all subcounties from geojson with actual data
+                df_map_pcn = df_all_sub.merge(df_score, on='Sub county', how='left')
 
-            # Fill NaN scores (for subcounties with no data) with 0 for plotting
-            df_map_pcn[selected_indicator_pcn] = df_map_pcn[selected_indicator_pcn].fillna(0)
+                # Fill NaN scores (for subcounties with no data) with 0 for plotting
+                df_map_pcn[selected_indicator_pcn] = df_map_pcn[selected_indicator_pcn].fillna(0)
 
-            # --- Create map ---
-            fig_map_pcn = px.choropleth_mapbox(
-                df_map_pcn,
-                geojson=map_geojson, # Use the filtered GeoJSON
-                locations='Sub county',
-                featureidkey="properties.Subcounty_Name_Key",
-                color=selected_indicator_pcn,
-                hover_name='Sub county',
-                color_continuous_scale="RdYlGn",
-                mapbox_style="white-bg",
-                zoom=map_zoom, # Use dynamic zoom
-                center=map_center, # Use dynamic center
-                opacity=0.85,
-                labels={selected_indicator_pcn: "Score (%)"},
-            )
+                # --- Create map ---
+                fig_map_pcn = px.choropleth_mapbox(
+                    df_map_pcn,
+                    geojson=map_geojson, # Use the filtered GeoJSON
+                    locations='Sub county',
+                    featureidkey="properties.Subcounty_Name_Key",
+                    color=selected_indicator_pcn,
+                    hover_name='Sub county',
+                    color_continuous_scale="RdYlGn",
+                    mapbox_style="white-bg",
+                    zoom=map_zoom, # Use dynamic zoom
+                    center=map_center, # Use dynamic center
+                    opacity=0.85,
+                    labels={selected_indicator_pcn: "Score (%)"},
+                )
 
                 fig_map_pcn.update_traces(marker_line={'width':0.5,'color':'grey'}, selector=dict(type='choroplethmapbox'))
                 fig_map_pcn.update_layout(
