@@ -542,7 +542,8 @@ else:
                 df_score = pcn_filtered_plot[['Sub county', selected_indicator_pcn]].copy()
                 df_score['Sub county'] = df_score['Sub county'].apply(standardize_name)
 
-            # 1. Filter the GeoJSON features based on the selected county
+
+                # 1. Filter the GeoJSON features based on the selected county
             if selected_county_pcn != "All":
                 
                 # Filter features where the 'County_Name_Key' property matches the selected County
@@ -596,17 +597,26 @@ else:
                 labels={selected_indicator_pcn: "Score (%)"},
             )
 
-            fig_map_pcn.update_traces(marker_line={'width':0.5,'color':'grey'}, selector=dict(type='choroplethmapbox'))
-            fig_map_pcn.update_layout(
-                # ... (Keep your colorbar layout here) ...
-            )
+                fig_map_pcn.update_traces(marker_line={'width':0.5,'color':'grey'}, selector=dict(type='choroplethmapbox'))
+                fig_map_pcn.update_layout(
+                    coloraxis_colorbar=dict(
+                        title=dict(text="Score (%)", font=dict(color="black", size=12)),
+                        tickformat=".0f",
+                        tickfont=dict(color="black"),
+                        x=0.97, xanchor="right", y=0.5, yanchor="middle", len=0.6, thickness=12,
+                        bgcolor="rgba(255,255,255,0.6)"
+                    ),
+                    margin={"r":0,"t":30,"l":0,"b":0}
+                )
 
-            fig_map_pcn.add_annotation(
-                text=map_title_text, # Use dynamic title
-                # ... (Keep your annotation styling here) ...
-            )
+                fig_map_pcn.add_annotation(
+                    text=f"{selected_indicator_pcn} across PCNs in {selected_county_pcn}",
+                    xref="paper", yref="paper", x=0.5, y=0.98, showarrow=False,
+                    font=dict(size=11, color="black"), bgcolor="rgba(255,255,255,0.7)",
+                    bordercolor="black", borderwidth=1, borderpad=6
+                )
 
-            st.plotly_chart(fig_map_pcn, use_container_width=True)
+                st.plotly_chart(fig_map_pcn, use_container_width=True)
 
 # -------------------------
 # 7. Data Table Summary (optional) - show the filtered PCN data for transparency
